@@ -47,6 +47,7 @@ void Stepper(int rotation, int direction)
 	{
 		//PORTC = (direction == CW) ? (PORTA = step[stepper._stepNum]) : (PORTA = step[3 - stepper._stepNum]);
 		PORTC = (direction == CW) ? (step[stepper._stepNum]) : (step[3 - stepper._stepNum]);
+		PORTA = (direction == CW) ? (step[stepper._stepNum]) : (step[3 - stepper._stepNum]);
         stepper._stepNum = (stepper._stepNum == 3) ? (stepper._stepNum = 0) : (stepper._stepNum + 1) ;
         Delay_Create(20);
 		PORTC = 0x00;

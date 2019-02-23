@@ -32,7 +32,7 @@ int main()
 	stepper_handle = -1;
 	timer_handle = -1;
 	delay_flag = -1;
-	
+	int t = 1;
     //START setup functions
     DDRA = 0x00;  // Sets all pins on Port A to input
     DDRB = 0xFF;  // Sets all pins on Port B to output for PWM [7]
@@ -44,7 +44,7 @@ int main()
     PORTD = 0x00; // clear Port D
 	if (Timer_Init() != 0) PORTC |= TIMER_ERROR; //red leds error
 	Stepper_Setup();
-	
+	pwmSetup();
 	
 	sei();        // Enable global interrupts
 	
@@ -55,6 +55,9 @@ int main()
 // 		 {
 // 			timer_handle = Timer_Create(1000,1,d_blinky,NULL);
 // 		 }
+		
+		while(t)
+		{
 			Stepper(TURN_30, CW);
 			Delay_Create(1000);
 			Stepper(TURN_30, CW);
@@ -73,6 +76,12 @@ int main()
 			Delay_Create(1000);
 			Stepper(TURN_180, CCW);
 			Delay_Create(1000);
+			Stepper(BRAKE, CCW);
+			Delay_Create(1000);
+			Stepper(OFF, CCW);
+			Delay_Create(1000);
+			t = 0;
+		}
 	}
 	return 0;
 }

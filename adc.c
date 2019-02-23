@@ -23,7 +23,8 @@
 
 void adcSetup()
 {
-    cli();
+    ATOMIC_BLOCK(ATOMIC_RESTORESTATE)
+	{
     //configure external interrupts
     EIMSK |= (_BV(INT2));               //enable INT2
     EICRA |= (_BV(ISC21) | _BV(ISC20)); //rising edge interrupt
@@ -32,8 +33,8 @@ void adcSetup()
     ADCSRA |= _BV(ADEN);                // enable ADC
     ADCSRA |= _BV(ADIE);                // enable interrupt of ADC
     ADMUX |= (_BV(ADLAR) | _BV(REFS0)); // left adjust ADC result, use AVcc
-    sei();
     ADCSRA |= _BV(ADSC); //Start ADC converions
+	}
 }
 
 // Function for polling ADC
