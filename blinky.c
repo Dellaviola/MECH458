@@ -13,6 +13,7 @@
 #include <stdint.h>         
 #include <avr/io.h>        // the header of i/o port
 #include "config.h" 
+#include "blinky.h"
 
 
 
@@ -28,5 +29,22 @@ void c_blinky(void *arg)
 {
 	//flashing the top 4 leds of the led bank
 	(void) arg;
-	PORTC ^= 0xF0;
+	PORTC ^= 0xFF;
+}
+void c_shifty(void *arg)
+{
+	//flashing the top 4 leds of the led bank
+	(void) arg;
+	PORTC = (PORTC == 0xFF ? 0x01 : (++PORTC));
+}
+void c_picky(void *arg)
+{
+	//flashing the top 4 leds of the led bank
+	(uint8_t) arg;
+	PORTC = arg;
+}
+void do_nothing(void *arg)
+{
+	(void) arg;
+	delay_flag = -1;
 }
