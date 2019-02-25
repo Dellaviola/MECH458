@@ -25,3 +25,4 @@ more time can be given, or maybe priorities should be implemented
 
 implement an idle state, probably the infinite loop in main, to do some cleanup or something.
 
+implement a counting semaphore for data, as data is added to the queue some task processes it. (classify, move stepper...)
