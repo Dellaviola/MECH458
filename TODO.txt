@@ -25,4 +25,6 @@ more time can be given, or maybe priorities should be implemented
 
 implement an idle state, probably the infinite loop in main, to do some cleanup or something.
 
-implement a counting semaphore for data, as data is added to the queue some task processes it. (classify, move stepper...)
+implement a counting semaphore for events
+implement a circular queue for data.
+^^^^----- periodic tasks should be able to wait for semaphore or queue writes then process one at a time.
