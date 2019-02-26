@@ -33,6 +33,7 @@ void Stepper_Setup()
     stepper._motorPosition = 0;
     stepper._stepNum = 0;
 	stepper.direction = 0;
+	PORTA = 0x30;
 
 }
 

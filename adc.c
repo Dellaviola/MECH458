@@ -16,27 +16,39 @@
 #include <util/atomic.h>    // atomic blocks to handle blocking tasks
 #include <avr/wdt.h>        // watchdog macros reset MCU on hangs.
 #include <avr/interrupt.h> // Delay functions for AT90USBKey
-#include "timer.h"
+#include "config.h"
 #include "adc.h"
 
 //################## MAIN ROUTINE ##################
 
 void adcSetup()
 {
-    ATOMIC_BLOCK(ATOMIC_RESTORESTATE)
-	{
+//     ATOMIC_BLOCK(ATOMIC_RESTORESTATE)
+// 	{
     //configure external interrupts
-    EIMSK |= (_BV(INT2));               //enable INT2
-    EICRA |= (_BV(ISC21) | _BV(ISC20)); //rising edge interrupt
+ 		EIMSK |= (_BV(INT2));               //enable INT2
+ 		EICRA |= (_BV(ISC21) | _BV(ISC20)); //rising edge interrupt
 
-    //ADC default input (analog input is set to be ADC0 / PORTF0
-    ADCSRA |= _BV(ADEN);                // enable ADC
-    ADCSRA |= _BV(ADIE);                // enable interrupt of ADC
-    ADMUX |= (_BV(ADLAR) | _BV(REFS0)); // left adjust ADC result, use AVcc
-    ADCSRA |= _BV(ADSC); //Start ADC converions
-	}
+		//ADC default input (analog input is set to be ADC0 / PORTF0
+		ADCSRA |= _BV(ADEN);                // enable ADC
+		ADCSRA |= _BV(ADIE);                // enable interrupt of ADC
+		ADMUX |= (_BV(ADLAR) | _BV(REFS0) ); // left adjust ADC result, use AVcc
+		//ADCSRA |= _BV(ADSC); //Start ADC converions
+//	}
 }
 
+ISR(ADC_vect)
+{
+	
+	    ADC_result = ADCH;
+	    ADC_result_flag = 1;
+
+}
+ISR(INT2_vect)
+{
+	// when there is a rising edge, we need to do ADC =====================
+	ADCSRA |= _BV(ADSC);
+}
 // Function for polling ADC
 // void adcCheck
 // {
