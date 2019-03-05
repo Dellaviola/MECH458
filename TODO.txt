@@ -1,0 +1,30 @@
+timer acts like a scheduler
+
+needs a blocking call that is not the current Create_Delay, something like a sleep function
+there is maybe a bug with the current delay that causes a delay to be missed because the flag is able to be accessed by any function
+would be preferable to just sleep a task.
+
+ideally:
+
+tasks (timers) should be created, and placed into the scheduler.
+taks are implemented by void functions taking a void*, in the place of the callback var
+tasks use the arg pointer to pass data. this data should be a pointer to a struct.
+scheduler is activated (timer starts and interrupts are enabled) after all tasks are created.
+these tasks are periodic, there is functionality for one-shot timers, like a cooldown/stop state. Not sure how current delay deals with
+multiple delay calls.
+
+there is a need, as in Stepper, for a periodic function to have another delay inside it.
+this needs to be resolved, potentially with a seperate timer only for delays.
+
+consider looking up which timer has highest interrupt priority, giving that timer the "scheduler" and then using another for delays
+the last is for pwm.
+
+this scheduler has no priorities right now. is limited to the task period
+missing this deadline causes bad behaviour. 
+more time can be given, or maybe priorities should be implemented
+
+implement an idle state, probably the infinite loop in main, to do some cleanup or something.
+
+implement a counting semaphore for events
+implement a circular queue for data.
+^^^^----- periodic tasks should be able to wait for semaphore or queue writes then process one at a time.

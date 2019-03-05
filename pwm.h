@@ -1,17 +1,7 @@
-/*
-        blinky.h
-
-        2019-02-21
-
-        Mario Dellaviola
-
-        
-        callback functions for timers
-*/
-
-
-#ifndef BLINKY_H_
-#define BLINKY_H_
+//pwm.h
+//implemnet PWM functions
+#ifndef PWM_H_
+#define PWM_H_
 
 #include <stdlib.h>        // the header of the general purpose standard library of C programming language
 #include <stdint.h>
@@ -20,11 +10,8 @@
 #include <avr/interrupt.h> // Delay functions for AT90USBKey
 #include "config.h"
 
+void pwmSetup(void);
+void pwm(int, int);
 
-void d_blinky (void *);
-void c_blinky (void *);
-void c_shifty (void *);
-void c_picky (void *);
-void do_nothing (void *);
 
 #endif

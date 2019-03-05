@@ -1,17 +1,10 @@
-/*
-        blinky.h
-
-        2019-02-21
-
-        Mario Dellaviola
-
-        
-        callback functions for timers
-*/
+// adc.h
+//Implements ADC Functions
 
 
-#ifndef BLINKY_H_
-#define BLINKY_H_
+
+#ifndef ADC_H_
+#define ADC_H_
 
 #include <stdlib.h>        // the header of the general purpose standard library of C programming language
 #include <stdint.h>
@@ -19,12 +12,7 @@
 #include <util/atomic.h>    // atomic blocks to handle blocking tasks
 #include <avr/interrupt.h> // Delay functions for AT90USBKey
 #include "config.h"
-
-
-void d_blinky (void *);
-void c_blinky (void *);
-void c_shifty (void *);
-void c_picky (void *);
-void do_nothing (void *);
+//Sets up registers for ADC
+void adcSetup(void);
 
 #endif

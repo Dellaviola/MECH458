@@ -1,17 +1,15 @@
 /*
-        blinky.h
+        gpio.h
 
         2019-02-21
 
         Mario Dellaviola
 
-        
-        callback functions for timers
+        gpio setup, pin debouncing.
 */
 
-
-#ifndef BLINKY_H_
-#define BLINKY_H_
+#ifndef GPIO_H_
+#define GPIO_H_
 
 #include <stdlib.h>        // the header of the general purpose standard library of C programming language
 #include <stdint.h>
@@ -21,10 +19,6 @@
 #include "config.h"
 
 
-void d_blinky (void *);
-void c_blinky (void *);
-void c_shifty (void *);
-void c_picky (void *);
-void do_nothing (void *);
 
-#endif
+
+#endif GPIO_H_

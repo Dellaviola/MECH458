@@ -18,6 +18,7 @@
 #include "timer.h"
 #include "string.h"
 #include "config.h"
+#include "blinky.h"
 
 ISR (TIMER1_COMPA_vect)    // Timer1 ISR
 {
@@ -96,7 +97,7 @@ int Timer_Create(uint16_t timeout_ms, int periodic, void (*callback)(void *), vo
 			
 			_timer[i].callback = callback;
 			_timer[i].arg = arg;
-			_timer[i].expiry = timeout_ms;
+			_timer[i].expiry = timeout_ms + _timer_tick;
 			
 		}
 		
@@ -108,4 +109,11 @@ int Timer_Create(uint16_t timeout_ms, int periodic, void (*callback)(void *), vo
     return 0;
 }
 
-//ADD TIMER_DELETE, ADD 100ms timer maybe for 
+void Delay_Create(uint16_t timeout_ms)
+{
+	delay_flag = Timer_Create(timeout_ms,0,do_nothing,NULL);
+	
+	while(delay_flag != -1);
+}
+
+//TODO: Timer delete, 100 ms timer 
