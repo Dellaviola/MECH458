@@ -28,3 +28,19 @@ implement an idle state, probably the infinite loop in main, to do some cleanup 
 implement a counting semaphore for events
 implement a circular queue for data.
 ^^^^----- periodic tasks should be able to wait for semaphore or queue writes then process one at a time.
+
+
+
+
+
+STEPPER TESTING:
+
+max speed around 54/8 ms dependant on weight
+approx 6.75 ms / step
+
+150 steps per second, must start accelerating from 50 steps/second
+
+max acceleration approximately 1 step/ms/ms
+
+should try to test based on weight, at maximum speeds performance is unstable.
+problem occurs at startup torque, try to shape curve better (.5msms .75msms 1msms) needs to be extended
