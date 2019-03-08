@@ -73,7 +73,7 @@ void Stepper(int rotation, int direction, bool cont)
 	//PORTC = 0xAA;
 	//(stepper_param) arg;
 	size_t i;
-	volatile uint8_t step[4] = {0x30, 0x06, 0x28, 0x05};
+	volatile uint8_t step[4] = {0x36, 0x2E, 0x2D, 0x35};
 
 	for (i = 0; i < rotation; i++)
 	{
