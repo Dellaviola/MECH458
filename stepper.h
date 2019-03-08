@@ -19,6 +19,7 @@ struct stepper_param
 	uint8_t _motorPosition;
 	uint8_t direction;
 	uint8_t rotation;
+	uint8_t _delay = 20;
 	//uint8_t step[4] = {0x30, 0x06, 0x28, 0x05};
 };
 
