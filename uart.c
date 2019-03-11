@@ -10,6 +10,9 @@
 
 #include "uart.h"
 
+
+#define FOSC 8000000
+
 void uint16t2string(uint16_t byte, char* out)
 {
 	
@@ -21,9 +24,11 @@ void uint16t2string(uint16_t byte, char* out)
 void uart_Init()
 {
 	
-	UBRR1 = (uint16_t)25;
-	UCSR1B = _BV(TXEN1) | _BV(RXEN1);
-	UCSR1C = _BV(UCSZ11)|_BV(UCSZ10);
+	UBRR1H = (uint8_t)((((uint32_t)FOSC)/((uint32_t)9600*16)-1)>>8);
+	UBRR1L = (uint8_t)(((uint32_t)FOSC)/((uint32_t)9600*16)-1) & 0x0ff;
+	
+	UCSR1B |= (1 << RXEN1) | (1 << TXEN1);
+	UCSR1C |= (1 << UCSZ11) | (1 << UCSZ10);
 
 }
 
