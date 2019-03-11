@@ -10,33 +10,41 @@
 //# REVISED 11-02-2019
 //########################################################################
 
-#include <stdlib.h>        // the header of the general purpose standard library of C programming language
+#include <stdlib.h> // the header of the general purpose standard library of C programming language
 #include <stdint.h>
-#include <avr/io.h>        // the header of i/o port
-#include <util/atomic.h>    // atomic blocks to handle blocking tasks
-#include <avr/wdt.h>        // watchdog macros reset MCU on hangs.
+#include <avr/io.h>		   // the header of i/o port
+#include <util/atomic.h>   // atomic blocks to handle blocking tasks
+#include <avr/wdt.h>	   // watchdog macros reset MCU on hangs.
 #include <avr/interrupt.h> // Delay functions for AT90USBKey
-#include "timer.h"
 #include "stepper.h"
-#include "config.h"
-#include "blinky.h"
 
 #define TURN_180 100
+#define CW 0x04
+#define CCW 0x08
 
-
-//Stepper Globals ------- moved into header, replaced with struct
-// volatile char step[4] = {0x30, 0x06, 0x28, 0x05};
-// static int stepNum = 0;
-// static int motorPosition; //TODO: Track position
-
+//TODO; Write spin down
 
 void Stepper_Setup()
 {
-    stepper._motorPosition = 0;
-    stepper._stepNum = 0;
+	stepper._stepNum = 0;
 	stepper.direction = 0;
+	stepper.target = 0;
+	stepper.current = 0;
+	stepper.next = 0;
 	PORTA = 0x30;
 
+	cli();
+	//Initial delay of 20ms
+	OCR2B = 0x9C;
+	// Set to CTC Mode
+	TCCR2A |= (1 << WGM21);
+	//Set interrupt on compare match
+	TIMSK2 |= (1 << OCIE2A);
+	// set prescaler to 1024 and starts PWM
+	TCCR2B |= (1 << CS22) | (1 << CS21) | (1 << CS20);
+
+	sei();
+	// enable interrupts
 }
 
 int NumSteps(int target, int current)
@@ -55,41 +63,53 @@ int NumSteps(int target, int current)
 	return steps;
 }
 
-void Rotate(int target, int current, int next)
+void SetRotation(int target, int next)
 {
-	//Steps and dirrection to position
-	steps = NumSteps(target, current);
-	//Steps and dirrection to next pos
-	nextSteps = NumSteps(next, target);
-	stepper._dirrection = (steps >= 0) ? CW : CCW;
-	bool cont = (steps * nextSteps >= 0) TRUE : FALSE;
-
-	//setpper can not take -ve numbers of steps
-	Stepper(abs(steps), stepper._dirrection, cont);
+	//Use this to set the target positions
+	stepper.target = target;
+	stepper.next = next;
+	Rotate();
+	OCR2B = 0x07 * stepper._delay;
 }
 
-void Stepper(int rotation, int direction, bool cont)
+void Rotate()
 {
-	//PORTC = 0xAA;
-	//(stepper_param) arg;
-	size_t i;
+	//Steps and dirrection to position
+	stepper._targetStep = NumSteps(stepper.target, stepper.current);
+	//Steps and dirrection to next pos
+	int nextSteps = NumSteps(stepper.next, stepper.target);
+	stepper.direction = (stepper._targetStep >= 0) ? CW : CCW;
+	stepper._willContinue = (stepper._targetStep * nextSteps >= 0) ? 1 : 0;
+
+	//stepper can not take -ve numbers of steps
+	stepper._targetStep = abs(stepper._targetStep);
+}
+
+ISR(TIMER2_COMPA_vect)
+{
 	volatile uint8_t step[4] = {0x36, 0x2E, 0x2D, 0x35};
 
-	for (i = 0; i < rotation; i++)
+	if (stepper._currentStep < stepper._targetStep)
 	{
-		//PORTC = (direction == CW) ? (PORTA = step[stepper._stepNum]) : (PORTA = step[3 - stepper._stepNum]);
-		PORTC = (direction == CW) ? (step[stepper._stepNum]) : (step[3 - stepper._stepNum]);
-		PORTA = (direction == CW) ? (step[stepper._stepNum]) : (step[3 - stepper._stepNum]);
+		PORTC = (stepper.direction == CW) ? (step[stepper._stepNum]) : (step[3 - stepper._stepNum]);
+		PORTA = (stepper.direction == CW) ? (step[stepper._stepNum]) : (step[3 - stepper._stepNum]);
 		stepper._stepNum = (stepper._stepNum == 3) ? (stepper._stepNum = 0) : (stepper._stepNum + 1);
-		Delay_Create(stepper._delay);
 		PORTC = 0x00;
+		stepper._currentStep++;
 
 		//Simple accell / decel blcok
-		if ((i > 5) && (stepper._delay > 6))
-			stepper._delay -= 2;
-		if (((roation - i) <= 5) && (stepper._delay < 20))
-			stepper._delay += 2;
+		if ((stepper._currentStep > 5) && (stepper._delay > 8))
+			stepper._delay -= 1;
+		if (((stepper._targetStep - stepper._currentStep) <= 5) && (stepper._delay < 20))
+			stepper._delay += 1;
 	}
-	//if not continuing in the same dirrections reset the delay
-	stepper._delay = (cont) ? stepper._delay : 20;
+	else if (stepper._currentStep == stepper._targetStep)
+	{
+		stepper._currentStep = 0;
+		stepper._targetStep = 0;
+		stepper.current = stepper.target;
+		stepper._delay = (stepper._willContinue) ? stepper._delay : 20;
+	}
+
+	OCR2B = 0x07 * stepper._delay;
 }

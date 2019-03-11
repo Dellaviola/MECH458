@@ -23,6 +23,7 @@
 #include "delay.h"
 #include "stepper.h"
 #include "pwm.h"
+#include "uart.h"
 
 
 
@@ -47,6 +48,7 @@ int main()
 	Stepper_Setup();
 	pwmSetup();
 	adcSetup();
+	uart_Init();
 	PORTB = ~(0x0F);	//brake right away
 	
 	sei();        // Enable global interrupts
@@ -56,85 +58,117 @@ int main()
 	while(1)
 	{
 		
-		//PORTB = 0xFF;
-		if (ADC_result_flag)
-		{
-			PORTC = ADC_result;     // Print ADC result to PORT C
-			ADC_result_flag = 0x00; //Clear ADC flag
-			pwm(ADC_result, 1);
-			//Delay_Create(200);
-			ADCSRA |= _BV(ADSC);    // Restart ADC on rising edge
-			
-		}
-		if ((PIND & 0x03) == 0x03) // ON CCW
-		{
-			
-			if ((PORTB & 0x0F) == ~0x0D)
-			{
-				PORTB = ~0x0F;
-				Delay_Create(10);
-			} // brake to vcc
-			//PORTC = ~0x07;
-			PORTB = ~0x07; // turn on, go to ccw
-		} 
-		else if ((PIND & 0x03) == 0x02) // ON CW
-		{
-			
-			if ((PORTB & 0x0F) == ~0x07)
-			{
-				PORTB = ~0x0F;
-				Delay_Create(10);
-			} // brake to vcc
-			//PORTC = ~0x0D;// 00001101
-			PORTB = ~0x0D; // turn on, go to cw
-		}
-		else if ((PIND & 0x03) == 0x0) // BRAKE TIME
-		{
-			
-			PORTB = ~0x0F; // brake to vcc
-			//PORTC = ~0x0F;
-
-		}
-		else // BRAKE ANYWAY
-		{
-			PORTB = ~(0x0F); // brake to vcc
-			//PORTC = ~0x0F;
-		}
+		Delay_Create(1000);
 		
-			
-// 					
-// 		 if (timer_handle < 0) 
-// 		 {
-// 			timer_handle = Timer_Create(1000,1,d_blinky,NULL);
-// 		 }
+		uart_SendChar('a');
 		
-		while(t)
-		{
-// 			Stepper(TURN_30, CW);
-// 			Delay_Create(1000);
-			Stepper(TURN_30, CW);
-			Delay_Create(1000);
-			Stepper(TURN_60, CW);
-			Delay_Create(1000);	
-			Stepper(TURN_90, CW);
-			Delay_Create(1000);
-			Stepper(TURN_180, CW);
-			Delay_Create(1000);
-			Stepper(TURN_30, CCW);
-			Delay_Create(1000);
-			Stepper(TURN_60, CCW);
-			Delay_Create(1000);
-			Stepper(TURN_90, CCW);
-			Delay_Create(1000);
-			Stepper(TURN_180, CCW);
-			Delay_Create(1000);
-// 			Stepper(BRAKE, CCW);
-// 			Delay_Create(1000);
-// 			Stepper(OFF, CCW);
-// 			Delay_Create(1000);
-			t = 0;
-		}
+		PORTC = 0xFF;
+		Delay_Create(1000);
+		
+		PORTC = 0x00;
 	}
 	return 0;
 }
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+		
+				// 		//PORTB = 0xFF;
+				// 		if (ADC_result_flag)
+				// 		{
+				// 			PORTC = ADC_result;     // Print ADC result to PORT C
+				// 			ADC_result_flag = 0x00; //Clear ADC flag
+				// 			pwm(ADC_result, 1);
+				// 			//Delay_Create(200);
+				// 			ADCSRA |= _BV(ADSC);    // Restart ADC on rising edge
+				// 			
+				// 		}
+				// 		if ((PIND & 0x03) == 0x03) // ON CCW
+				// 		{
+				// 			
+				// 			if ((PORTB & 0x0F) == ~0x0D)
+				// 			{
+				// 				PORTB = ~0x0F;
+				// 				Delay_Create(10);
+				// 			} // brake to vcc
+				// 			//PORTC = ~0x07;
+				// 			PORTB = ~0x07; // turn on, go to ccw
+				// 		} 
+				// 		else if ((PIND & 0x03) == 0x02) // ON CW
+				// 		{
+				// 			
+				// 			if ((PORTB & 0x0F) == ~0x07)
+				// 			{
+				// 				PORTB = ~0x0F;
+				// 				Delay_Create(10);
+				// 			} // brake to vcc
+				// 			//PORTC = ~0x0D;// 00001101
+				// 			PORTB = ~0x0D; // turn on, go to cw
+				// 		}
+				// 		else if ((PIND & 0x03) == 0x0) // BRAKE TIME
+				// 		{
+				// 			
+				// 			PORTB = ~0x0F; // brake to vcc
+				// 			//PORTC = ~0x0F;
+				// 
+				// 		}
+				// 		else // BRAKE ANYWAY
+				// 		{
+				// 			PORTB = ~(0x0F); // brake to vcc
+				// 			//PORTC = ~0x0F;
+				// 		}
+				// 		
+				// 			
+				// // 					
+				// // 		 if (timer_handle < 0) 
+				// // 		 {
+				// // 			timer_handle = Timer_Create(1000,1,d_blinky,NULL);
+				// // 		 }
+				// 		
+				// 		while(t)
+				// 		{
+				// // 			Stepper(TURN_30, CW);
+				// // 			Delay_Create(1000);
+				// 			Stepper(TURN_30, CW);
+				// 			Delay_Create(1000);
+				// 			Stepper(TURN_60, CW);
+				// 			Delay_Create(1000);	
+				// 			Stepper(TURN_90, CW);
+				// 			Delay_Create(1000);
+				// 			Stepper(TURN_180, CW);
+				// 			Delay_Create(1000);
+				// 			Stepper(TURN_30, CCW);
+				// 			Delay_Create(1000);
+				// 			Stepper(TURN_60, CCW);
+				// 			Delay_Create(1000);
+				// 			Stepper(TURN_90, CCW);
+				// 			Delay_Create(1000);
+				// 			Stepper(TURN_180, CCW);
+				// 			Delay_Create(1000);
+				// // 			Stepper(BRAKE, CCW);
+				// // 			Delay_Create(1000);
+				// // 			Stepper(OFF, CCW);
+				// // 			Delay_Create(1000);
+				// 			t = 0;
+				// 		}
