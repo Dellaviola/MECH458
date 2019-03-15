@@ -36,14 +36,14 @@
 
 
 // Defines
-#define PIN7                    0x80
-#define PIN6                    0x40
-#define PIN5                    0x20
-#define PIN4                    0x10
-#define PIN3                    0x08
-#define PIN2                    0x04
-#define PIN1                    0x02
-#define PIN0                    0x01
+// #define PIN7                    0x80
+// #define PIN6                    0x40
+// #define PIN5                    0x20
+// #define PIN4                    0x10
+// #define PIN3                    0x08
+// #define PIN2                    0x04
+// #define PIN1                    0x02
+// #define PIN0                    0x01
 //globals
 
 	volatile int stepper_handle;

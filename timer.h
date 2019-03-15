@@ -45,8 +45,7 @@ struct timer
     void* arg;
 };
 
-static struct timer _timer[MAX_TIMERS];
-static volatile uint16_t _timer_tick = 0;
+
 int Timer_Init(void);
 int Timer_Create(uint16_t, int, void (*callback)(void *) , void *);
 int Timer_Delete(int);

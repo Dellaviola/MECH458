@@ -28,9 +28,9 @@ void adcSetup()
 	{
 
 		//ADC default input (analog input is set to be ADC0 / PORTF0
-		ADCSRA |= ((1<<ADEN) | (1<<ADIE))
-		ADCSRB |= (1<<ADHSM)
-		ADMUX  |= ((_BV(REFS0) | (1<<MUX0) );
+		ADCSRA |= ((1<<ADEN) | (1<<ADIE));
+		ADCSRB |= (1<<ADHSM);
+		ADMUX  |= (_BV(REFS0) | (1<<MUX0));
 	}
 }
 

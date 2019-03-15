@@ -18,7 +18,7 @@
 #include <avr/interrupt.h> // Delay functions for AT90USBKey
 #include "config.h"
 
-int gpioInit();
+int gpioInit(void);
+int optHandler_1(void);
 
-
-#endif GPIO_H_
+#endif //GPIO_H_

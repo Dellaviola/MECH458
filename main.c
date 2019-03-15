@@ -24,11 +24,11 @@
 #include "stepper.h"
 #include "pwm.h"
 #include "gpio.h"
+#include "uart.h"
 
 
 
-
-int main()
+int main(void)
 {	
 	cli();
 	CLKPR = (1<<CLKPCE);
@@ -38,8 +38,8 @@ int main()
 	stepper_handle = -1;
 	timer_handle = -1;
 	delay_flag = -1;
-	if (Timer_Init() != 0) uPrint("TIMER DID NOT INITIALIZE"); //red leds error
-	Stepper_Setup();
+	if (Timer_Init() != 0) uartSendString("TIMER DID NOT INITIALIZE"); //red leds error
+	//Stepper_Setup();
 	pwmSetup();
 	adcSetup();
 	
@@ -51,9 +51,9 @@ int main()
 	
 	while(1)
 	{
-		if (optHandler_1){
-			startADC();
-			Timer_Create(60000, 0, stopADC(), NULL );
+		if ((PINE & 0x40) == 0){
+			startADC(NULL);
+			Timer_Create(60000, 0, stopADC, NULL );
 		}
 
 		ATOMIC_BLOCK(ATOMIC_RESTORESTATE){
@@ -61,10 +61,10 @@ int main()
 		}
 
 		sprintf(data,"%d",temp);
-
-		uartSendChar(data);
-
-		if((BUTTON_1_PIN & PIN0) != 0){
+		
+		uartSendString(data);
+		
+		if((PIND & 0x01) == 0){
 			PORTB = ~0x0F;
 			PORTC = ~0x0F;
 		} else {

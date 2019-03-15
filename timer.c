@@ -20,6 +20,9 @@
 #include "config.h"
 #include "blinky.h"
 
+static struct timer _timer[MAX_TIMERS];
+static volatile uint16_t _timer_tick = 0;
+
 ISR (TIMER1_COMPA_vect)    // Timer1 ISR
 {
 	_timer_tick++;
