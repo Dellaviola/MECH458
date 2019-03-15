@@ -34,8 +34,8 @@ void pwmSetup()
     OCR0A = 0x80; // Sets PWM duty cycle = 50%
 }
 
-void pwm(int dutyCycle, int direction)
+void pwm(const int dutyCycle)
 {
-    PORTD = direction;
     OCR0A = dutyCycle;
 }
+

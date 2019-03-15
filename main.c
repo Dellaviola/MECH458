@@ -48,6 +48,7 @@ int main()
 	char data[50];
 	uint16_t temp;
 
+	
 	while(1)
 	{
 		if (optHandler_1){
@@ -62,6 +63,12 @@ int main()
 		sprintf(data,"%d",temp);
 
 		uartSendChar(data);
+
+		if((BUTTON_1_PIN & PIN0) != 0){
+			PORTB = ~0x0F;
+		} else {
+			PORTB = ~0x07;
+		}
 
 	}
 	return 0;

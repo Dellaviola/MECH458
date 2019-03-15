@@ -11,7 +11,7 @@
 #include "config.h"
 
 void pwmSetup(void);
-void pwm(int, int);
+void pwm(int);
 
 
 #endif
