@@ -20,10 +20,11 @@
 #include <avr/interrupt.h> // Delay functions for AT90USBKey
 #include "config.h"
 
-void uint16t2string(uint16_t, char*);
-void uart_Init(void);
-void uart_SendChar(char);
-void uart_SendString(const char*);
-uint8_t uart_Recieve(void);
+#define uartSendString() uPrint()
+
+void uartInit(void);
+void uartSendChar(char);
+void uartSendString(const char*);
+uint8_t uartRecieve(void);
 
 #endif

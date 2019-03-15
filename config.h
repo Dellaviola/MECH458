@@ -30,8 +30,7 @@
 	volatile int stepper_handle;
 	volatile int timer_handle;
 	volatile int delay_flag ;
-	volatile uint8_t ADC_result ;
-	volatile uint8_t ADC_result_flag ;
+	volatile uint16_t g_ADCResult;
 
 /*
         TIMER DEFINES

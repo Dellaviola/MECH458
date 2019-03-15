@@ -10,31 +10,28 @@
 
 #include "uart.h"
 
-void uint16t2string(uint16_t byte, char* out)
+void uartInit()
 {
 	
-	for(static int i = 0; 1 < 16; i++)
-	out[15-i] = ((byte >> i) & 0x01) ? '1' : '0';
+	UBRR1H = (uint8_t)((((uint32_t)FOSC)/((uint32_t)9600*16)-1)>>8);
+	UBRR1L = (uint8_t)(((uint32_t)FOSC)/((uint32_t)9600*16)-1) & 0x0ff;
 	
-}
-
-void uart_Init()
-{
-	
-	UBRR1 = (uint16_t)25;
-	UCSR1B = _BV(TXEN1) | _BV(RXEN1);
-	UCSR1C = _BV(UCSZ11)|_BV(UCSZ10);
+	UCSR1B |= (1 << RXEN1) | (1 << TXEN1);
+	UCSR1C |= (1 << UCSZ11) | (1 << UCSZ10);
 
 }
 
-void uart_SendChar(char c)
+
+
+void uartSendChar(const char c)
 {
 	
-	while(!(UCSR1A & _BV(UDRE1) ))
+	while ((UCSR1A & (1 << UDRE1)) == 0) {;}
 	UDR1 = c;
+	
 }
 
-void uart_SendString(const char* s)
+void uartSendString(const char* s)
 {
 	
 	uint16_t counter = 0;
@@ -45,10 +42,10 @@ void uart_SendString(const char* s)
 	}
 }
 
-uint8_t uart_Recieve ()
+uint8_t uartRecieve ()
 {
 
-    while (!(UCSR1A & _BV(RXCC1)))
+    while ((UCSR1A & (1 << RXC1)) == 0) {;}
     return UDR1;
 
 }

@@ -14,5 +14,7 @@
 #include "config.h"
 //Sets up registers for ADC
 void adcSetup(void);
+uint16_t getADC(void);
+void startADC();
 
 #endif
