@@ -24,7 +24,26 @@
 #include <math.h>
 #include <stdfix.h>
 
+// Settings
 
+#define OPTICAL_1_PIN           PINE6
+#define OPTICAL_2_PIN           PINE7
+#define OPTICAL_3_PIN           PINE5
+#define REFLECT_PIN             PINF0
+#define MAGNET_PIN              PINE4
+#define BUTTON_1_PIN            PIND0
+#define BUTTON_2_PIN            PIND1
+
+
+// Defines
+#define PIN7                    0x80
+#define PIN6                    0x40
+#define PIN5                    0x20
+#define PIN4                    0x10
+#define PIN3                    0x08
+#define PIN2                    0x04
+#define PIN1                    0x02
+#define PIN0                    0x01
 //globals
 
 	volatile int stepper_handle;

@@ -41,15 +41,21 @@ ISR(ADC_vect)
 
 }
 
-uint16t getADC(){
+uint16_t getADC(){
 
 	return ((ADCH << 8) | ADCL );
 }
 
-void startADC(){
+void startADC(void* arg){
 
-	ADCSRA |= (1<<ADSC);
+	(void) arg;
+	ADCSRA |= (1<<ADEN);
 
+}
+
+void stopADC(void* arg){
+	(void) arg;
+	ADC
 }
 // Function for polling ADC
 // void adcCheck

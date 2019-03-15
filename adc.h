@@ -15,6 +15,7 @@
 //Sets up registers for ADC
 void adcSetup(void);
 uint16_t getADC(void);
-void startADC();
+void startADC(void*);
+void stopADC(void*);
 
 #endif

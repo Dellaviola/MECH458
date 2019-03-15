@@ -45,10 +45,24 @@ int main()
 	
 	sei();        // Enable global interrupts
 	
-	
+	char data[50];
+	uint16_t temp;
+
 	while(1)
 	{
-		
+		if (optHandler_1){
+			startADC();
+			Timer_Create(60000, 0, stopADC(), NULL );
+		}
+
+		ATOMIC_BLOCK(ATOMIC_RESTORESTATE){
+			temp = getADC();
+		}
+
+		sprintf(data,"%d",temp);
+
+		uartSendChar(data);
+
 	}
 	return 0;
 }

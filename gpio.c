@@ -19,7 +19,12 @@ int gpioInit{
     DDRD = 0x00;  // Sets all pins on port D to input for buttons
     DDRF = 0x00;  // Sets all pins on Port F to input for ADC
 
-    
+
 
     return 0;
+}
+
+void optHandler_1(void)
+{
+    return (OPTICAL_1_PIN & PIN6) ? 0 : 1;
 }
