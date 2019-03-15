@@ -66,8 +66,10 @@ int main()
 
 		if((BUTTON_1_PIN & PIN0) != 0){
 			PORTB = ~0x0F;
+			PORTC = ~0x0F;
 		} else {
 			PORTB = ~0x07;
+			PORTC = ~0x07;
 		}
 
 	}

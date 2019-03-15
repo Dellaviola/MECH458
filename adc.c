@@ -50,12 +50,14 @@ void startADC(void* arg){
 
 	(void) arg;
 	ADCSRA |= (1<<ADEN);
+	PORTD = 0xF0;
 
 }
 
 void stopADC(void* arg){
 	(void) arg;
-	ADC
+	ADCSRA &= (0<<ADEN);
+	PORTD = 0x00;
 }
 // Function for polling ADC
 // void adcCheck
