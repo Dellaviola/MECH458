@@ -18,38 +18,43 @@
 // #include <avr/interrupt.h> // Delay functions for AT90USBKey
 #include "config.h"
 #include "adc.h"
+#include "uart.h"
+#include "string.h"
 
 //################## MAIN ROUTINE ##################
-static uint8_t flagADC = 0;
-
 void adcSetup()
 {
     ATOMIC_BLOCK(ATOMIC_RESTORESTATE)
 	{
 
 		//ADC default input (analog input is set to be ADC0 / PORTF0
-		ADCSRA |= ((1<<ADEN) | (1<<ADIE));
-		ADCSRB |= (1<<ADHSM);
-		ADMUX  |= (_BV(REFS0) | (1<<MUX0));
+		
+ 		ADCSRB |= (1<<ADHSM);
+		ADCSRA |= _BV(ADEN);                // enable ADC
+		ADCSRA |= _BV(ADIE);                // enable interrupt of ADC
+		ADMUX |=  _BV(REFS0); // left adjust ADC result, use AVcc
+		ADCSRA |= _BV(ADSC); //Start ADC converions
 	}
 }
 
 ISR(ADC_vect)
 {
+	    g_ADCResultl = ADCL;
+		g_ADCResulth = ADCH;
+	    g_ADCFlag = 1;
 	
-	   g_ADCResult = getADC();
-
 }
 
-uint16_t getADC(){
+volatile uint16_t getADC(){
 
 	return ((ADCH << 8) | ADCL );
+	
 }
 
-void startADC(void* arg){
+inline void startADC(void* arg){
 
 	(void) arg;
-	ADCSRA |= (1<<ADEN);
+	ADCSRA |= (1<<ADSC);
 	PORTD = 0xF0;
 
 }
