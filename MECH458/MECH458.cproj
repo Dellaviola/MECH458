@@ -251,9 +251,9 @@
     <Compile Include="DATAACQ.c">
       <SubType>compile</SubType>
     </Compile>
-    <Compile Include="DATAACQ.h">
+    <None Include="DATAACQ.h">
       <SubType>compile</SubType>
-    </Compile>
+    </None>
     <Compile Include="linkedlist.c">
       <SubType>compile</SubType>
     </Compile>
@@ -285,6 +285,12 @@
       <SubType>compile</SubType>
     </Compile>
     <Compile Include="linkedlist.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="LISTTEST.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="LISTTEST.h">
       <SubType>compile</SubType>
     </Compile>
     <Compile Include="main.c">

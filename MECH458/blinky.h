@@ -26,5 +26,6 @@ void C_Blinky (void *);
 void C_Shifty (void *);
 void C_Picky (void *);
 void Do_Nothing (void *);
+void Say_Hello(void *);
 
 #endif

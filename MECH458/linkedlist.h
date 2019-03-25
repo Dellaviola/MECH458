@@ -14,42 +14,72 @@
 #ifndef LINKEDLIST_H_
 #define LINKEDLIST_H_
 
-typedef struct itemContainer_s{
-	
-	uint8_t reflect;
-	uint8_t magnet;
-	ItemClass_e class;
-		
-}itemContainer;
+typedef enum classification_e
+{
+	WHITE,
+	BLACK,
+	ALUMINUM,
+	STEEL
+}classification;
 
-typedef struct timerContainer_s{
-	
+typedef struct itemNode_s
+{
+	uint16_t reflect;
+	uint8_t magnet;
+	classification class;
+		
+}itemNode;
+
+typedef struct timerNode_s
+{
+	uint8_t priority;
 	uint16_t expiry;
-	uint8_t periodic;
+	uint16_t periodic;
 	void (*callback)(void *);
 	void* arg;
-	
-}timerContainer;
+}timerNode;
 
-typedef struct listNode_s{
-
-	struct container;
-	struct listNode_s * next;
-	uint8_t sorted;
-	
+typedef union listNode_u
+{
+	struct timerNode_s timerNode;
+	struct itemNode_s itemNode;
 }listNode;
 
-typedef struct list_s{
-	listNode * head;
-	listNode * tail;
-	listNode * stage;
-	uint8_t size;
+typedef struct list_s
+{
+	void* node;
+	struct list_s* next;
+	struct list_s* prev;
 }list;
-	
-list LL_CTor(void);
-listNode * LL_Container(struct container);
-list LL_AddSorted(const list, const listNode);
-listNode * LL_Remove(listNode );
-list LL_Delete(list);
+
+itemNode* LL_ItemInit(uint16_t, uint8_t, classification);
+timerNode* LL_TimerInit(uint16_t, int, void (*callback)(void *), void *, uint8_t);
+list* LL_ItemListInit(void *);
+list* LL_TimerListInit(void*);
+void LL_Delete(list*);
+list* LL_Next(list*);
+list* LL_Prev(list*);
+list* LL_PopFront(list*);
+list* LL_AddBack(list*, void *);
+list* LL_AddSorted(list*, void *);
+list* LL_Insert(list*, void *);
+list* LL_Remove(list*);
+list* LL_Head(list*);
+uint8_t LL_Size(list*);
+
+classification LL_GetClass(list*);
+uint16_t LL_GetRefl(list*);
+uint8_t LL_GetMag(list*);
+
+uint8_t LL_GetPriority(list*);
+uint8_t LL_IsPeriodic(list*);
+uint16_t LL_GetExpiry(list*);
+void LL_CallCallback(list*);
+void* LL_GetArg(list*);
+
+void LL_UpdateRefl(list*, uint16_t);
+void LL_UpdateMag(list*, uint8_t);
+void LL_UpdateClass(list*,classification);
+
 
 #endif /* LINKEDLIST_H_ */

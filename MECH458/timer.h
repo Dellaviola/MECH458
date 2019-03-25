@@ -36,23 +36,11 @@
 #include <util/atomic.h>    // atomic blocks to handle blocking tasks
 #include <avr/interrupt.h> // Delay functions for AT90USBKey
 #include "config.h"
-
-struct timer
-{
-    uint16_t expiry;
-    uint16_t periodic;
-    void (*callback)(void *);
-    void* arg;
-};
-
+#include "linkedlist.h"
 
 int Timer_Init(void);
-int Timer_Create(uint16_t, int, void (*callback)(void *) , void *);
+int Timer_Create(uint16_t, int, void (*callback)(void *) , void *, uint8_t);
 int Timer_Delete(int);
 void Delay_Create(uint16_t);
-
-
-
-
 
 #endif

@@ -25,16 +25,23 @@
 #include "pwm.h"
 #include "gpio.h"
 #include "uart.h"
-#include "DATAACQ.h"
 
-#define DATAMODE 1
 
+#define DATAMODE 0
+#define LISTUNITTEST 1
 
 int main(void)
 {	
 	
+	
 #if DATAMODE == 1
+	#include "DATAACQ.h"
 	DATAACQ();
+	return 0;
+#endif
+#if LISTUNITTEST == 1
+	#include "LISTTEST.h"
+	LISTTEST();
 	return 0;
 #endif
 	cli();
@@ -114,6 +121,6 @@ ISR(BADISR_vect)
 {
 	while(1)
 	{
-		Timer_Create(4000, 1, C_Blinky, NULL);
+		Timer_Create(4000, 1, C_Blinky, NULL,0);
 	}
 }

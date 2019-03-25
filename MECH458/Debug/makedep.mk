@@ -16,6 +16,8 @@ fsm.c
 
 gpio.c
 
+LISTTEST.c
+
 main.c
 
 pwm.c

@@ -68,14 +68,7 @@
 /*
 		List
 */
-typedef enum
-{
-	BLACK,
-	WHITE,
-	ALUMINUM,
-	STEEL
-		
-}ItemClass_e;
+
 
 //Stop Defines for readability of stepper
 #define BRAKE 0x3f

@@ -19,8 +19,9 @@
 #include "string.h"
 #include "config.h"
 #include "blinky.h"
+#include "linkedlist.h"
 
-static struct timer _timer[MAX_TIMERS];
+static struct timerNode_s _timer[MAX_TIMERS];
 static volatile uint16_t _timer_tick = 0;
 
 ISR (TIMER1_COMPA_vect)    // Timer1 ISR
@@ -70,7 +71,7 @@ int Timer_Init(void)
 					periodic: 0 or 1 for not repeating, repeating.
 					
 */
-int Timer_Create(uint16_t timeout_ms, int periodic, void (*callback)(void *), void *arg)
+int Timer_Create(uint16_t timeout_ms, int periodic, void (*callback)(void *), void *arg, uint8_t priority)
 {
 	int handle = -1;
 	size_t i;
@@ -114,7 +115,7 @@ int Timer_Create(uint16_t timeout_ms, int periodic, void (*callback)(void *), vo
 
 void Delay_Create(uint16_t timeout_ms)
 {
-	delay_flag = Timer_Create(timeout_ms,0,Do_Nothing,NULL);
+	delay_flag = Timer_Create(timeout_ms,0,Do_Nothing,NULL,0);
 	
 	while(delay_flag != -1);
 }

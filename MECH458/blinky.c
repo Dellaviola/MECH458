@@ -14,6 +14,7 @@
 #include <avr/io.h>        // the header of i/o port
 #include "config.h" 
 #include "blinky.h"
+#include "uart.h"
 
 
 
@@ -47,4 +48,9 @@ void Do_Nothing(void *arg)
 {
 	(void) arg;
 	delay_flag = -1;
+}
+void Say_Hello(void *arg)
+{
+	(void) arg;
+	UART_SendString("Hello!\r\n");
 }
