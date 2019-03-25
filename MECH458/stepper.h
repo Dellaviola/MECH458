@@ -13,22 +13,23 @@
 #include <avr/interrupt.h> // Delay functions for AT90USBKey
 #include "config.h"
 
-struct stepper_param
+typedef struct stepper_param
 {
-	uint8_t _stepNum;
-	uint8_t _motorPosition;
+	uint16_t _stepNum;
 	uint8_t direction;
-	uint8_t rotation;
+	uint16_t target;
+	uint8_t current;
+	uint16_t _targetStep;
+	uint16_t _currentStep;
+	uint16_t next;
 	uint8_t _delay;
-	//uint8_t step[4] = {0x30, 0x06, 0x28, 0x05};
-};
+	uint8_t _willContinue;
+}stepperParam;
 
-
-struct stepper_param stepper;
-
-void Stepper_Setup(void);
-
-void Stepper(int, int);
+void STEPPER_Init(void);
+uint16_t STEPPER_NumSteps(uint16_t, uint16_t);
+void STEPPER_Rotate(void);
+void STEPPER_SetRotation(uint16_t, uint16_t);
 
 
 #endif
