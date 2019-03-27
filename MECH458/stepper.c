@@ -23,7 +23,7 @@
 #define CCW 0x08
 
 //TODO; Write spin down
-static stepperParam stepper;
+
 
 void STEPPER_Init()
 {
@@ -51,7 +51,7 @@ void STEPPER_Init()
 	// enable interrupts
 }
 
-uint16_t STEPPER_NumSteps(uint16_t target, uint16_t current)
+uint16_t STEPPER_NumSteps(uint8_t target, uint8_t current)
 {
 	int steps = (target - current);
 	if (steps >= 0)
@@ -81,7 +81,7 @@ void STEPPER_Rotate()
 	stepper._currentStep = 0;
 }
 
-void STEPPER_SetRotation(uint16_t target, uint16_t next)
+void STEPPER_SetRotation(uint8_t target, uint8_t next)
 {
 	cli();
 	//Use this to set the target positions
@@ -101,7 +101,7 @@ ISR(TIMER2_COMPA_vect)
 	{
 		//if your not at the target fire the motor
 		PORTA = (stepper.direction == CW) ? (step[stepper._stepNum]) : (step[3 - stepper._stepNum]);
-		stepper._stepNum = (stepper._stepNum == 3) ? (stepper._stepNum = 0) : (stepper._stepNum + 1);
+		stepper._stepNum = (stepper._stepNum == 3) ? 0 : (stepper._stepNum + 1);
 
 		stepper._currentStep++;
 

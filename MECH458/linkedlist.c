@@ -20,11 +20,12 @@ timerNode* LL_TimerInit(uint16_t timeout_ms, int periodic, void (*callback)(void
 {
 	//
 	timerNode* newItem = malloc(sizeof(timerNode));
+	extern volatile uint16_t gTimerTick;
 	
 	newItem->arg = arg;
 	newItem->callback = callback;
-	newItem->expiry = timeout_ms;
-	newItem->periodic = periodic;
+	newItem->expiry = timeout_ms + gTimerTick;
+	newItem->periodic = (periodic) ? timeout_ms : 0;
 	newItem->priority = priority;
 	return newItem;
 }
@@ -141,6 +142,11 @@ uint8_t LL_IsPeriodic(list* ref)
 {
 	return ((timerNode*)ref->node)->periodic;
 }
+uint16_t LL_GetExpiry(list* ref)
+{
+	//
+	return ((timerNode*)ref->node)->expiry;
+}
 
 void LL_CallCallback(list* ref)
 {
@@ -173,5 +179,23 @@ void LL_UpdateClass(list* ref, classification newClass)
 {
 	//
 	((itemNode*)ref->node)->class = newClass;
+	return;
+}
+void LL_UpdateExpiry(list* ref, uint16_t newExpiry)
+{
+	//
+	((timerNode*)ref->node)->expiry = newExpiry;
+	return;
+}
+void LL_UpdatePriority(list* ref, uint8_t newPriority)
+{
+	//
+	((timerNode*)ref->node)->priority = newPriority;
+	return;
+}
+void LL_UpdatePeriodic(list* ref, uint8_t newPeriodic)
+{
+	//
+	((timerNode*)ref->node)->periodic = newPeriodic;
 	return;
 }

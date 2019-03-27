@@ -15,21 +15,23 @@
 
 typedef struct stepper_param
 {
-	uint16_t _stepNum;
+	uint8_t _stepNum;
 	uint8_t direction;
-	uint16_t target;
+	uint8_t target;
 	uint8_t current;
-	uint16_t _targetStep;
-	uint16_t _currentStep;
-	uint16_t next;
+	uint8_t _targetStep;
+	uint8_t _currentStep;
+	uint8_t next;
 	uint8_t _delay;
 	uint8_t _willContinue;
 }stepperParam;
 
+stepperParam stepper;
+
 void STEPPER_Init(void);
-uint16_t STEPPER_NumSteps(uint16_t, uint16_t);
+uint16_t STEPPER_NumSteps(uint8_t, uint8_t);
 void STEPPER_Rotate(void);
-void STEPPER_SetRotation(uint16_t, uint16_t);
+void STEPPER_SetRotation(uint8_t, uint8_t);
 
 
 #endif

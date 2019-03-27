@@ -266,18 +266,6 @@
     <Compile Include="conf_clock.h">
       <SubType>compile</SubType>
     </Compile>
-    <Compile Include="delay.c">
-      <SubType>compile</SubType>
-    </Compile>
-    <Compile Include="delay.h">
-      <SubType>compile</SubType>
-    </Compile>
-    <Compile Include="fsm.c">
-      <SubType>compile</SubType>
-    </Compile>
-    <Compile Include="fsm.h">
-      <SubType>compile</SubType>
-    </Compile>
     <Compile Include="gpio.c">
       <SubType>compile</SubType>
     </Compile>
@@ -311,10 +299,22 @@
     <Compile Include="stepper.h">
       <SubType>compile</SubType>
     </Compile>
+    <Compile Include="sys.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="sys.h">
+      <SubType>compile</SubType>
+    </Compile>
     <Compile Include="timer.c">
       <SubType>compile</SubType>
     </Compile>
     <Compile Include="timer.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="TIMERTEST.h">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="TIMERTEST.c">
       <SubType>compile</SubType>
     </Compile>
     <Compile Include="uart.c">

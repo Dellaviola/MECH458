@@ -10,10 +10,6 @@ DATAACQ.c
 
 linkedlist.c
 
-delay.c
-
-fsm.c
-
 gpio.c
 
 LISTTEST.c
@@ -26,7 +22,11 @@ src\ASF\common\services\clock\mega\sysclk.c
 
 stepper.c
 
+sys.c
+
 timer.c
+
+TIMERTEST.c
 
 uart.c
 

@@ -42,7 +42,7 @@ while(memory)
 		{
 			memory = 1;
 			g_ADCFlag = 0x00; //Clear ADC flag
-			data[i++] = ((g_ADCResulth<<8) | g_ADCResultl);
+			data[i++] = g_ADCResult;
 			ADCSRA |= _BV(ADSC);
 		}
 		if ((memory == 1) && ((PINE & 0x40) == 0) && ((PIND & 0x01) == 0x01)){

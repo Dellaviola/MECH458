@@ -19,7 +19,8 @@ typedef enum classification_e
 	WHITE,
 	BLACK,
 	ALUMINUM,
-	STEEL
+	STEEL,
+	UNCLASSIFIED
 }classification;
 
 typedef struct itemNode_s
@@ -52,6 +53,12 @@ typedef struct list_s
 	struct list_s* prev;
 }list;
 
+list* gScheduler;
+list* HEAD;
+list* TAIL;
+list* STAGE1;
+list* STAGE2;
+
 itemNode* LL_ItemInit(uint16_t, uint8_t, classification);
 timerNode* LL_TimerInit(uint16_t, int, void (*callback)(void *), void *, uint8_t);
 list* LL_ItemListInit(void *);
@@ -76,6 +83,10 @@ uint8_t LL_IsPeriodic(list*);
 uint16_t LL_GetExpiry(list*);
 void LL_CallCallback(list*);
 void* LL_GetArg(list*);
+
+void LL_UpdateExpiry(list*, uint16_t);
+void LL_UpdatePriority(list*, uint8_t);
+void LL_UpdatePeriodic(list*, uint8_t);
 
 void LL_UpdateRefl(list*, uint16_t);
 void LL_UpdateMag(list*, uint8_t);

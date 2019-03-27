@@ -25,15 +25,18 @@
 #include "pwm.h"
 #include "gpio.h"
 #include "uart.h"
-
+#include "string.h"
+#include "sys.h"
 
 #define DATAMODE 0
-#define LISTUNITTEST 1
+#define LISTUNITTEST 0
+#define TIMERUNITTEST 0
+
+
+//volatile uint16_t gTimerTick = 0;
 
 int main(void)
 {	
-	
-	
 #if DATAMODE == 1
 	#include "DATAACQ.h"
 	DATAACQ();
@@ -44,76 +47,49 @@ int main(void)
 	LISTTEST();
 	return 0;
 #endif
-	cli();
-	CLKPR = (1<<CLKPCE);
-	CLKPR = 0;
-	UART_Init();
-	GPIO_Init();
-	stepper_handle = -1;
-	timer_handle = -1;
-	delay_flag = -1;
-	if (Timer_Init() != 0) UART_SendString("TIMER DID NOT INITIALIZE"); //red leds error
-	//Stepper_Setup();
-	PWM_Init();
-	ADC_Init();
+#if TIMERUNITTEST == 1
+	#include "TIMERTEST.h"
+	TIMERTEST();
+	return 0;
+#endif
 	
-	sei();        // Enable global interrupts	
-	uint16_t data[1500];
-	char datao[10];
-	int memory = 2;
-	size_t i = 0;
-	while(memory)
+	SYS_Init();
+	
+	while(!gSysCalibrated)
 	{
-		
-	 	if ((PINE & 0x40) == 0x40) PORTC = 0xF0;
-		if ((PINE & 0x40) == 0x00) PORTC = 0x0F;
-		if((PIND & 0x01) == 0){
-			PORTB = ~0x0F;
-			//PORTC = ~0x0F;
-			} else {
-			PORTB = ~0x0E;
-			//PORTC = ~0x07;
+		if((PIND & 0x03) == 0x00) // Both Buttons
+		{
+			UART_SendString("Starting System!\r\n");
+			gSysCalibrated = 1;
 		}
-		if (g_ADCFlag && ((PINE & 0x40) == 0x40))
-		{	
-			memory = 1;
-			//PORTC = (g_ADCResultl);     // Print ADC result to PORT C
-			g_ADCFlag = 0x00; //Clear ADC flag
-			//Delay_Create(200);
-			    // Restart ADC on rising edge
-			data[i++] = ((g_ADCResulth<<8) | g_ADCResultl);
-
-			ADCSRA |= _BV(ADSC);
-			
-		}
-		if ((memory == 1) && ((PINE & 0x40) == 0) && ((PIND & 0x01) == 0x01)){
-			PORTB = ~0x0f;
-			for (i = 0; i < sizeof(data); i++){
-				if (data[i] < 1000) {
-					sprintf(datao,"%d\r\n",data[i]);
-					UART_SendString(datao);
-				}
-			}
-			i = 0;
-			memory = 0;
-		}
-
-// 		ATOMIC_BLOCK(ATOMIC_RESTORESTATE){
-// 			temp = getADC();
-// 		}
-		//g_ADCResult = 0;
-// 		if (g_ADCFlag) {
-// 			startADC(NULL);
-// 			g_ADCFlag = 0;
-// 		}
-// 		sprintf(data,"%d\n",g_ADCResult);
-// 		uartSendString(data);
-		
-
-
 	}
-	Delay_Create(8000);
-	UART_SendString("end\r\n");
+	
+	ATOMIC_BLOCK(ATOMIC_FORCEON)
+	{
+		TIMER_Create(4000, 1, D_Blinky, NULL);		// Placeholder -- Calibration
+		_timer[0].state = READY;
+	
+		TIMER_Create(27, 1, ADC_Task, NULL);		// ADC Handler
+		_timer[1].state = BLOCKED;
+	
+		TIMER_Create(200, 1, MAG_Task, NULL);		// Magnetic Sensor Polling
+		_timer[2].state = BLOCKED;
+	
+		TIMER_Create(8000, 1, EXIT_Task, NULL);		// Item Exit Handling
+		_timer[3].state = BLOCKED;
+	
+		TIMER_Create(8000, 1, ADD_Task, NULL);		// Item Enter Handling
+		_timer[4].state = BLOCKED;
+	
+		TIMER_Create(1000, 1, BTN_Task, NULL);		// Button Handling
+		_timer[5].state = READY;
+	
+		TIMER_Create(27, 1, SERVER_Task, NULL);	// Event Handling
+		_timer[6].state = READY;
+	};
+	// Put IDLE operations in infinite loop
+	while (1){;}
+		
 	return 0;
 }
 
@@ -121,6 +97,6 @@ ISR(BADISR_vect)
 {
 	while(1)
 	{
-		Timer_Create(4000, 1, C_Blinky, NULL,0);
+		TIMER_Create(4000, 1, C_Blinky, NULL);
 	}
 }

@@ -14,8 +14,5 @@
 #include "config.h"
 //Sets up registers for ADC
 void ADC_Init(void);
-volatile uint16_t ADC_Get(void);
-void ADC_Start(void*);
-void ADC_Stop(void*);
 
 #endif

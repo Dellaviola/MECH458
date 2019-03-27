@@ -1,12 +1,8 @@
 /*
         timer.h
-
         2019-02-21
-
         Mario Dellaviola
-
         timer prototypes and definitions.
-
         Timer Structure:
                             expiry:     timing length
                             periodic:   no repeat (0) repeat (1)
@@ -14,11 +10,8 @@
                             void*: available to pass a parameter to callback
         
         Timer_Init()
-
             sets up timer/counter1
-
         Timer_Create()
-
             makes a new timer stored in the timer struct.
             param1: number of milliseconds (up to 65000)
             param2: binary flag for periodicness
@@ -36,11 +29,33 @@
 #include <util/atomic.h>    // atomic blocks to handle blocking tasks
 #include <avr/interrupt.h> // Delay functions for AT90USBKey
 #include "config.h"
-#include "linkedlist.h"
 
-int Timer_Init(void);
-int Timer_Create(uint16_t, int, void (*callback)(void *) , void *, uint8_t);
-int Timer_Delete(int);
+typedef enum eTaskState 
+{
+	BLOCKED,
+	RUNNING,
+	READY,
+	SUSPENDED
+}eTaskState;
+
+struct timer
+{
+    uint16_t expiry;
+    uint16_t periodic;
+    void (*callback)(void *);
+    void* arg;
+	eTaskState state;
+};
+
+struct timer _timer[MAX_TIMERS];
+
+int TIMER_Init(void);
+int TIMER_Create(uint16_t, int, void (*callback)(void *) , void *);
+int TIMER_Delete(int);
 void Delay_Create(uint16_t);
+
+
+
+
 
 #endif

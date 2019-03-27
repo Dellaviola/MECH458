@@ -20,6 +20,7 @@
 #include "adc.h"
 #include "uart.h"
 #include "string.h"
+#include "timer.h"
 
 //################## MAIN ROUTINE ##################
 void ADC_Init()
@@ -39,31 +40,11 @@ void ADC_Init()
 
 ISR(ADC_vect)
 {
-	    g_ADCResultl = ADCL;
-		g_ADCResulth = ADCH;
-	    g_ADCFlag = 1;
-	
+		if (g_ADCCount < 10) g_ADCResult[g_ADCCount++] = ADC;
+	    ADCSRA |= (1 << ADSC);
+		if (g_ADCCount == 10) _timer[1].state = READY;
 }
 
-volatile uint16_t ADC_Get(){
-
-	return ((ADCH << 8) | ADCL );
-	
-}
-
-inline void ADC_Start(void* arg){
-
-	(void) arg;
-	ADCSRA |= (1<<ADSC);
-	PORTD = 0xF0;
-
-}
-
-void ADC_Stop(void* arg){
-	(void) arg;
-	ADCSRA &= (0<<ADEN);
-	PORTD = 0x00;
-}
 // Function for polling ADC
 // void adcCheck
 // {

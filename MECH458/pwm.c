@@ -37,5 +37,7 @@ void PWM_Init()
 void PWM(const int dutyCycle)
 {
     OCR0A = dutyCycle;
+	if (dutyCycle) gMotorOn = 1;
+	else gMotorOn = 0;
 }
 

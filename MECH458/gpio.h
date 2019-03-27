@@ -19,6 +19,8 @@
 #include "config.h"
 
 int GPIO_Init(void);
-int Opt_1_Handler(void);
+int OPT_1_Handler(void);
+int OPT_2_Handler(void);
+int OPT_3_Handler(void);
 
 #endif //GPIO_H_

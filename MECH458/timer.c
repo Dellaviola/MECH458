@@ -1,11 +1,8 @@
 /*
-        timer.c
-
-        2019-02-21
-
-        Mario Dellaviola
-
-        timer function implementations.
+timer.c
+2019-02-21
+Mario Dellaviola
+timer function implementations.
 */
 
 
@@ -19,13 +16,18 @@
 #include "string.h"
 #include "config.h"
 #include "blinky.h"
-#include "linkedlist.h"
+#include "uart.h"
 
-static struct timerNode_s _timer[MAX_TIMERS];
+
 static volatile uint16_t _timer_tick = 0;
 
 ISR (TIMER1_COMPA_vect)    // Timer1 ISR
 {
+	// Scheduler timer
+		// Overhead: 30 us
+		
+	// uint16_t start = TCNT1;
+	// uint16_t stop = 0;
 	_timer_tick++;
 	
 	size_t i;
@@ -35,9 +37,8 @@ ISR (TIMER1_COMPA_vect)    // Timer1 ISR
 		//if (_timer[i].callback != NULL) PORTD = 0xF0;
 
 		if ((_timer[i].callback != NULL) && (_timer[i].expiry == _timer_tick)) {
-			_timer[i].callback(_timer[i].arg);
-			//_timer_tick = 0;
-			//PORTD = 0xF0;
+			if (_timer[i].state == READY) _timer[i].callback(_timer[i].arg);
+			
 			if (_timer[i].periodic > 0) {
 				/* Timer is periodic, calculate next expiration */
 				_timer[i].expiry += _timer[i].periodic;
@@ -47,12 +48,19 @@ ISR (TIMER1_COMPA_vect)    // Timer1 ISR
 			}
 		}
 	}
-	//PORTD = 0xF0;
-	//TCNT1 = 0x0000;   // for 1 sec at 16 MHz
+	/*
+	 * stop = TCNT1;
+	 * uint16_t total = stop - start;
+	 * char buf[sizeof(uint16_t)+1];
+	 * sprintf(buf,"%u\r\n", total);
+	 * UART_SendString(buf);
+	*/
+	
+	// Utilization diagnostic
 }
 
 
-int Timer_Init(void)
+int TIMER_Init(void)
 {
     //Configure the PORTD4 as output
     TCNT1 = 0x0000;
@@ -71,7 +79,7 @@ int Timer_Init(void)
 					periodic: 0 or 1 for not repeating, repeating.
 					
 */
-int Timer_Create(uint16_t timeout_ms, int periodic, void (*callback)(void *), void *arg, uint8_t priority)
+int TIMER_Create(uint16_t timeout_ms, int periodic, void (*callback)(void *), void *arg)
 {
 	int handle = -1;
 	size_t i;
@@ -102,6 +110,7 @@ int Timer_Create(uint16_t timeout_ms, int periodic, void (*callback)(void *), vo
 			_timer[i].callback = callback;
 			_timer[i].arg = arg;
 			_timer[i].expiry = timeout_ms + _timer_tick;
+			_timer[i].state = READY;
 			
 		}
 		
@@ -115,9 +124,9 @@ int Timer_Create(uint16_t timeout_ms, int periodic, void (*callback)(void *), vo
 
 void Delay_Create(uint16_t timeout_ms)
 {
-	delay_flag = Timer_Create(timeout_ms,0,Do_Nothing,NULL,0);
+	delay_flag = TIMER_Create(timeout_ms,0,Do_Nothing,NULL);
 	
 	while(delay_flag != -1);
 }
 
-//TODO: Timer delete, 100 ms timer 
+//TODO: Timer delete, 100 ms timer

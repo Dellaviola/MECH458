@@ -23,6 +23,7 @@
 #include <util/atomic.h>
 #include <math.h>
 #include <stdfix.h>
+#include "linkedlist.h"
 
 // Settings
 
@@ -49,8 +50,8 @@
 	volatile int stepper_handle;
 	volatile int timer_handle;
 	volatile int delay_flag ;
-	volatile uint16_t g_ADCResulth;
-	volatile uint16_t g_ADCResultl;
+	volatile uint16_t g_ADCResult[10];
+	volatile uint16_t g_ADCCount;
 	volatile uint8_t g_ADCFlag;
 /*
         TIMER DEFINES
@@ -60,6 +61,11 @@
 #define ms 0x03E8
 #define ss
 
+
+volatile uint16_t gTimerTick;
+list* gScheduler;
+volatile uint8_t gMotorOn;
+volatile uint8_t gSysCalibrated;
 /*
 		LED error indicators
 */

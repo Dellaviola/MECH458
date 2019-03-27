@@ -27,5 +27,13 @@ void C_Shifty (void *);
 void C_Picky (void *);
 void Do_Nothing (void *);
 void Say_Hello(void *);
+void ADC_Task(void *);
+void MAG_Task(void *);
+void EXIT_Task(void *);
+void IDLE_Task(void*);
+void SERVER_Task(void*);
+void STEPPER_Task(void*);
+void ADD_Task(void*);
+void BTN_Task(void*);
 
 #endif
