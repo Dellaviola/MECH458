@@ -6,6 +6,7 @@
  */ 
 
 #include "sys.h"
+#include "timer.h"
 
 void SYS_Init()
 {
@@ -18,10 +19,11 @@ void SYS_Init()
 	
 	UART_Init();
 	GPIO_Init();
-	Timer_Init();
+	TIMER_Init();
 	PWM_Init();
 	ADC_Init();
 	STEPPER_Init();
+	
 	stepper_handle = -1;
 	timer_handle = -1;
 	delay_flag = -1;
@@ -35,8 +37,39 @@ void SYS_Init()
 	STAGE1 = NULL;
 	STAGE2 = NULL;
 	
-	gSysCalibrated = 0;
-	
-	sei();
+	//sei();
 
+}
+
+void SYS_Pause(char str[20])
+{
+	cli();
+	PWM(0);
+	char buffer[100];
+	if(HEAD) sprintf(buffer, "%s: Item Refl: %u, Item Mag: %u, Item Class: %u\r\n", str, LL_GetRefl(HEAD), LL_GetMag(HEAD), LL_GetClass(HEAD));
+	if(HEAD) UART_SendString(buffer);
+	if(STAGE1) sprintf(buffer, "%s: Item Refl: %u, Item Mag: %u, Item Class: %u\r\n", str, LL_GetRefl(STAGE1), LL_GetMag(STAGE1), LL_GetClass(STAGE1));
+	if(STAGE1) UART_SendString(buffer);
+	if(STAGE2) sprintf(buffer, "%s: Item Refl: %u, Item Mag: %u, Item Class: %u\r\n", str, LL_GetRefl(STAGE2), LL_GetMag(STAGE2), LL_GetClass(STAGE2));
+	if(STAGE2) UART_SendString(buffer);
+	if(TAIL) sprintf(buffer, "%s: Item Refl: %u, Item Mag: %u, Item Class: %u\r\n", str, LL_GetRefl(TAIL), LL_GetMag(TAIL), LL_GetClass(TAIL));
+	if(TAIL) UART_SendString(buffer);
+	
+	for(int i = 0; i < 7; i++)
+	{
+		char statebuff[10];
+		sprintf(statebuff, "Timer %d State: %u\r\n", i, _timer[i].state);
+		UART_SendString(statebuff);
+	}
+	while(1)
+	{
+		if((PIND & 0x03) == 0x00) // Both Buttons
+		{
+			UART_SendString("Starting System!\r\n");
+			PWM(0x80);
+			sei();
+			break;
+		}
+	}
+	return;
 }

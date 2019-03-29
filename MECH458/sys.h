@@ -28,6 +28,6 @@
 
 void SYS_Init(void);
 
-
+void SYS_Pause(char[20]);
 
 #endif /* SYS_H_ */

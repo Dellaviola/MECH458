@@ -54,42 +54,89 @@ int main(void)
 #endif
 	
 	SYS_Init();
-	
-	while(!gSysCalibrated)
+
+	while(1)
 	{
 		if((PIND & 0x03) == 0x00) // Both Buttons
 		{
 			UART_SendString("Starting System!\r\n");
-			gSysCalibrated = 1;
+			break;
 		}
 	}
 	
 	ATOMIC_BLOCK(ATOMIC_FORCEON)
 	{
-		TIMER_Create(4000, 1, D_Blinky, NULL);		// Placeholder -- Calibration
+		TIMER_Create(1, 1, SERVER_Task, NULL);		// Placeholder -- Calibration
 		_timer[0].state = READY;
 	
-		TIMER_Create(27, 1, ADC_Task, NULL);		// ADC Handler
+		TIMER_Create(3, 1, ADC_Task, NULL);		// ADC Handler
 		_timer[1].state = BLOCKED;
 	
-		TIMER_Create(200, 1, MAG_Task, NULL);		// Magnetic Sensor Polling
+		TIMER_Create(5, 1, MAG_Task, NULL);		// Magnetic Sensor Polling
 		_timer[2].state = BLOCKED;
 	
-		TIMER_Create(8000, 1, EXIT_Task, NULL);		// Item Exit Handling
+		TIMER_Create(2, 1, EXIT_Task, NULL);		// Item Exit Handling
 		_timer[3].state = BLOCKED;
 	
-		TIMER_Create(8000, 1, ADD_Task, NULL);		// Item Enter Handling
+		TIMER_Create(2, 1, ADD_Task, NULL);		// Item Enter Handling
 		_timer[4].state = BLOCKED;
 	
-		TIMER_Create(1000, 1, BTN_Task, NULL);		// Button Handling
+		TIMER_Create(250, 1, BTN_Task, NULL);		// Button Handling
 		_timer[5].state = READY;
 	
-		TIMER_Create(27, 1, SERVER_Task, NULL);	// Event Handling
+		TIMER_Create(1000, 1, C_Blinky, NULL);	// Event Handling
 		_timer[6].state = READY;
+		
+		UART_SendString("System Ready...\r\n");
+		PWM(0x80);
 	};
 	// Put IDLE operations in infinite loop
-	while (1){;}
+	while (1)
+	{
 		
+		PORTC = 0;
+		
+		if (g_IdleStartTime == 0)
+		{
+			g_IdleStartTime = TCNT1;
+			char str[20];
+			sprintf(str, "Processor Use = %u\r\n", (g_IdleStartTime - g_SchedulerStartTime));
+			UART_SendString(str);
+		}
+		
+		list* temp = HEAD;
+		while(temp){
+			if(temp && (LL_GetClass(temp) == UNCLASSIFIED))
+			{
+				//classify temp
+				uint16_t reflVal = LL_GetRefl(temp);
+				uint8_t magVal = LL_GetMag(temp);
+				
+				if(magVal)
+				{
+					if(reflVal < 150)
+					{
+						LL_UpdateClass(temp, ALUMINUM);
+					}
+					else
+					{
+						LL_UpdateClass(temp, STEEL);
+					}
+				}
+				else if(reflVal < 800)
+				{
+					LL_UpdateClass(temp, BLACK);
+				}
+				else
+				{
+					LL_UpdateClass(temp, WHITE);
+				}
+			}
+			temp = LL_Next(temp);
+		}
+
+ 	}
+	
 	return 0;
 }
 
@@ -97,6 +144,7 @@ ISR(BADISR_vect)
 {
 	while(1)
 	{
-		TIMER_Create(4000, 1, C_Blinky, NULL);
+		PORTC = 0xF0;
+		//TIMER_Create(4000, 1, C_Blinky, NULL);
 	}
 }

@@ -5,12 +5,12 @@
  *  Author: Mario
  */ 
 #include "linkedlist.h"
+#include "sys.h"
 
 itemNode* LL_ItemInit(uint16_t reflVal, uint8_t magVal, classification class)
 {
 	//
 	itemNode* newItem = malloc(sizeof(itemNode));
-	
 	newItem->reflect = reflVal;
 	newItem->magnet = magVal;
 	newItem->class = class;
@@ -72,6 +72,8 @@ list* LL_AddBack(list* ref, void* newNode)
 	
 	list* newList = LL_ItemListInit(newNode);
 	tail->next = newList;
+	
+	//SYS_Pause(__FUNCTION__);
 	
 	return newList;
 }

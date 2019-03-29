@@ -20,6 +20,7 @@
 #include "timer.h"
 #include "stepper.h"
 #include "pwm.h"
+#include "sys.h"
 
 
 void D_Blinky(void *arg)
@@ -95,7 +96,7 @@ void MAG_Task(void* arg)
 	static uint8_t count = 0;
 	static uint16_t tick = 0;
 	if (gMotorOn) tick++;
-	if((PINE & 0x08) == 0)
+	if((PINE & 0x10) == 0)
 	{
 		count++;
 		if (count > 2)
@@ -106,13 +107,14 @@ void MAG_Task(void* arg)
 			tick = 0;
 		}
 	}
-	else if (tick > 4000)
+	else if (tick > 5)
 	{
 		LL_UpdateMag(STAGE1, 0);
 		STAGE1 = LL_Next(STAGE1);
 		_timer[2].state = BLOCKED;
 		tick = 0;
 	}
+	//SYS_Pause(__FUNCTION__);
 }
 void EXIT_Task(void* arg)
 {
@@ -120,17 +122,21 @@ void EXIT_Task(void* arg)
 	/* checks position
 	 * 
 	 */
-	if(stepper.current == LL_GetClass(HEAD))
-	{
-		HEAD = LL_Remove(HEAD);
-		if(!gMotorOn) PWM(0x80);
-		STEPPER_SetRotation(LL_GetClass(HEAD), LL_GetClass(HEAD->next));
-		_timer[3].state = BLOCKED;
-	}
-	else
-	{
-		PWM(0);
-	}
+// 	if(stepper.current == LL_GetClass(HEAD))
+// 	{
+// 		HEAD = LL_Remove(HEAD);
+// 		if(!gMotorOn) PWM(0x80);
+// 		STEPPER_SetRotation(LL_GetClass(HEAD), LL_GetClass(HEAD->next));
+// 		_timer[3].state = BLOCKED;
+// 	}
+// 	else
+// 	{
+// 		PWM(0);
+// 	}
+	PWM(0);
+	HEAD = LL_Remove(HEAD);
+	_timer[3].state = BLOCKED;
+	SYS_Pause(__FUNCTION__);
 }
 void IDLE_Task(void* arg)
 {
@@ -158,6 +164,7 @@ void BTN_Task(void* arg)
 			else if ((PIND & 0x03) == 0x01) // Button 1 : Pause System
 			{
 				UART_SendString("Button1 Pressed!\r\n");
+				g_IdleStartTime = 0;
 				debounce = 0;
 			} 
 			else if ((PIND & 0x03) == 0x02) // Button 2 : Ramp Down
@@ -177,14 +184,28 @@ void BTN_Task(void* arg)
 void ADD_Task(void* arg)
 {
 	//
-	itemNode* newNode = LL_ItemInit(65535, 255, UNCLASSIFIED);
-	list* newList = LL_AddBack(HEAD, newNode);
+	
+	SYS_Pause(__FUNCTION__);
+	list* newList;
+	itemNode* newNode = LL_ItemInit(60000, 200, UNCLASSIFIED);
+	if (HEAD == NULL) 
+	{
+		HEAD = LL_AddBack(HEAD, newNode);
+		newList = HEAD;
+	}
+	else 
+	{
+		newList = LL_AddBack(HEAD, newNode);
+	}
+	
+	
 	
 	if (STAGE1 == NULL) STAGE1 = newList;
 	TAIL = newList;
-
-	_timer[2].state = READY;
 	_timer[4].state = BLOCKED;
+	_timer[2].state = READY;
+	
+	//SYS_Pause(__FUNCTION__);	
 }
 void STEPPER_Task(void* arg)
 {
@@ -196,30 +217,33 @@ void SERVER_Task(void* arg)
 	/* Event handler
 	 * 	
 	 */
-	static uint8_t pin7state = 0;
+	static uint8_t pin7state = 1;
 	static uint8_t pin6state = 0;
-	static uint8_t pin5state = 0;
+	static uint8_t pin5state = 1;
 	
-	if((PINE & 0x40) == 0) // E7
+	PORTC = 0xAA;
+	
+	if((PINE & 0x80) == 0) // E7
 	{
 		if(pin7state)
 		{
 			// Transition Detected O2 High -> Low : Reflect Exit
-			ADCSRA &= (0 << ADEN);
+			_timer[4].state = READY;
 		} 
 		pin7state = 0;
 	}
 	
-	if((PINE & 0x20) == 0) // E6
+	if((PINE & 0x40) == 0) // E6
 	{
 		if(pin6state)
 		{
 			// Transition Detected O1 High -> Low : New Item Enters
+			ADCSRA &= (0 << ADEN);
 		}
 		pin6state = 0;
 	}
 	
-	if((PINE & 0x10) == 0) // E5
+	if((PINE & 0x20) == 0) // E5
 	{
 		if(pin5state)
 		{
@@ -229,27 +253,28 @@ void SERVER_Task(void* arg)
 		pin5state = 0;
 	}
 	
-	if((PINE & 0x40) == 0x40) // E7
+	if((PINE & 0x80) == 0x80) // E7
 	{
 		if(!pin7state)
 		{
 			// Transition Detected O2 Low -> High : Item Entering Reflective
-			ADCSRA |= (1 << ADEN);
+
 		}
 		pin7state = 1;
 	}
 		
-	if((PINE & 0x20) == 0x20) // E6
+	if((PINE & 0x40) == 0x40) // E6
 	{
 		if(!pin6state)
 		{
 			// Transition Detected O1 Low -> High : Item Enters System
-			_timer[4].state = READY;
+			ADCSRA |= (1 << ADEN);
+			ADCSRA |= (1 << ADSC);
 		}
 		pin6state = 1;			
 	}
 		
-	if((PINE & 0x10) == 0x10) // E5
+	if((PINE & 0x20) == 0x20) // E5
 	{
 		if(!pin5state)
 		{
@@ -259,3 +284,16 @@ void SERVER_Task(void* arg)
 	}
 }
 
+//ISR(INT7_vect)
+//{
+	
+//}
+
+//ISR(INT6_vect)
+//{
+	
+//}
+//ISR(INT5_vect)
+//{
+	
+//}

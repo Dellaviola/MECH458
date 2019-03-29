@@ -53,6 +53,8 @@
 	volatile uint16_t g_ADCResult[10];
 	volatile uint16_t g_ADCCount;
 	volatile uint8_t g_ADCFlag;
+	volatile uint16_t g_IdleStartTime;
+	volatile uint16_t g_SchedulerStartTime;
 /*
         TIMER DEFINES
 */

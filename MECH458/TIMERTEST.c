@@ -25,7 +25,7 @@ void TIMERTEST()
 	stepper_handle = -1;
 	timer_handle = -1;
 	delay_flag = -1;
-	if (Timer_Init() != 0) UART_SendString("TIMER DID NOT INITIALIZE"); //red leds error
+	if (TIMER_Init() != 0) UART_SendString("TIMER DID NOT INITIALIZE"); //red leds error
 	//Stepper_Setup();
 	PWM_Init();
 	ADC_Init();	
@@ -35,7 +35,7 @@ void TIMERTEST()
 
 	//list* gScheduler = NULL;
 	
-	Timer_Create(8000,1,C_Blinky,NULL);
+	TIMER_Create(8000,1,C_Blinky,NULL);
 	
 	//TIMER_Dispatch(gScheduler);
 	
