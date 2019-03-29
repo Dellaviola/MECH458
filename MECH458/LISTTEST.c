@@ -29,16 +29,16 @@ void LISTTEST()
 	
 	UART_SendString("Testing List\r\n");
 	PORTC = 0xF0;
-	itemNode* newItem = LL_ItemInit(100,100,WHITE);
+	itemNode* newItem = LL_ItemInit(100,100,WHITE,INITIALIZED);
 	list* listIndex = LL_ItemListInit(newItem);
 	list* timerList = NULL;
 	list* head = listIndex;
 	
-	newItem = LL_ItemInit(100,100,BLACK);
+	newItem = LL_ItemInit(100,100,BLACK,INITIALIZED);
 	LL_AddBack(listIndex, newItem);
-	newItem = LL_ItemInit(100,100,ALUMINUM);
+	newItem = LL_ItemInit(100,100,ALUMINUM,INITIALIZED);
 	LL_AddBack(listIndex, newItem);
-	newItem = LL_ItemInit(100,100,STEEL);
+	newItem = LL_ItemInit(100,100,STEEL,INITIALIZED);
 	LL_AddBack(listIndex, newItem);
 	
 	head = LL_Remove(LL_Head(listIndex));

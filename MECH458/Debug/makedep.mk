@@ -8,6 +8,8 @@ blinky.c
 
 DATAACQ.c
 
+EXECACQ.c
+
 linkedlist.c
 
 gpio.c

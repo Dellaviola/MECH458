@@ -31,6 +31,7 @@
 #define DATAMODE 0
 #define LISTUNITTEST 0
 #define TIMERUNITTEST 0
+#define EXECMODE 1
 
 
 //volatile uint16_t gTimerTick = 0;
@@ -52,6 +53,11 @@ int main(void)
 	TIMERTEST();
 	return 0;
 #endif
+#if EXECMODE == 1
+	#include "EXECACQ.h"
+	EXECACQ();
+	return 0;
+#endif
 	
 	SYS_Init();
 
@@ -66,25 +72,25 @@ int main(void)
 	
 	ATOMIC_BLOCK(ATOMIC_FORCEON)
 	{
-		TIMER_Create(1, 1, SERVER_Task, NULL);		// Placeholder -- Calibration
+		TIMER_Create(1, 1, SERVER_Task, NULL);	// Optical Handler
 		_timer[0].state = READY;
 	
-		TIMER_Create(3, 1, ADC_Task, NULL);		// ADC Handler
+		TIMER_Create(1, 1, ADC_Task, NULL);		// ADC Handler
 		_timer[1].state = BLOCKED;
 	
-		TIMER_Create(5, 1, MAG_Task, NULL);		// Magnetic Sensor Polling
+		TIMER_Create(1, 1, MAG_Task, NULL);		// Magnetic Sensor Polling
 		_timer[2].state = BLOCKED;
 	
-		TIMER_Create(2, 1, EXIT_Task, NULL);		// Item Exit Handling
+		TIMER_Create(1, 1, EXIT_Task, NULL);	// Item Exit Handling
 		_timer[3].state = BLOCKED;
 	
-		TIMER_Create(2, 1, ADD_Task, NULL);		// Item Enter Handling
+		TIMER_Create(1, 1, ADD_Task, NULL);		// Item Enter Handling
 		_timer[4].state = BLOCKED;
 	
-		TIMER_Create(250, 1, BTN_Task, NULL);		// Button Handling
+		TIMER_Create(50, 1, BTN_Task, NULL);	// Button Handler
 		_timer[5].state = READY;
 	
-		TIMER_Create(1000, 1, C_Blinky, NULL);	// Event Handling
+		TIMER_Create(1000, 1, D_Blinky, NULL);	// Blinky Lights
 		_timer[6].state = READY;
 		
 		UART_SendString("System Ready...\r\n");
@@ -92,10 +98,7 @@ int main(void)
 	};
 	// Put IDLE operations in infinite loop
 	while (1)
-	{
-		
-		PORTC = 0;
-		
+	{		
 		if (g_IdleStartTime == 0)
 		{
 			g_IdleStartTime = TCNT1;
@@ -106,7 +109,7 @@ int main(void)
 		
 		list* temp = HEAD;
 		while(temp){
-			if(temp && (LL_GetClass(temp) == UNCLASSIFIED))
+			if(temp && (LL_GetClass(temp) == UNCLASSIFIED) && (LL_GetStatus(temp) == INITIALIZED))
 			{
 				//classify temp
 				uint16_t reflVal = LL_GetRefl(temp);
@@ -144,7 +147,7 @@ ISR(BADISR_vect)
 {
 	while(1)
 	{
-		PORTC = 0xF0;
+		PORTC = 0xAA;
 		//TIMER_Create(4000, 1, C_Blinky, NULL);
 	}
 }

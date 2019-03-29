@@ -37,6 +37,22 @@ void SYS_Init()
 	STAGE1 = NULL;
 	STAGE2 = NULL;
 	
+	listNode* initNode = LL_ItemInit(65000,250,UNCLASSIFIED,UNINITIALIZED);
+	
+	HEAD = LL_ItemListInit(initNode);
+	
+	for(int i = 47; i > 0; i--)
+	{
+		TAIL = LL_AddBack(HEAD, initNode);
+	}
+	
+	initNode = LL_ItemInit(65000,250, END_OF_LIST, UNINITIALIZED);
+	LL_AddBack(HEAD,initNode);
+	
+	//PORTC = LL_Size(HEAD);
+	char temp[5];
+	sprintf(temp,"%u\r\n", LL_Size(HEAD));
+	UART_SendString(temp);
 	//sei();
 
 }

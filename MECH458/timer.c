@@ -23,14 +23,15 @@ static volatile uint16_t _timer_tick = 0;
 
 ISR (TIMER1_COMPA_vect)    // Timer1 ISR
 {
-	PORTC = 0xF0;
+	PORTC ^= 0xFE;
 	// Scheduler timer
-		// Overhead: 30 us
+		// Overhead: 44.4 us
+		// min frame size 444us = 3552 ticks = 0x0DE0;
 		
 	// uint16_t start = TCNT1;
 	// uint16_t stop = 0;
 	_timer_tick++;
-	g_SchedulerStartTime = TCNT1;
+	//g_SchedulerStartTime = TCNT1;
 	
 	size_t i;
 	
@@ -38,7 +39,7 @@ ISR (TIMER1_COMPA_vect)    // Timer1 ISR
 		/* If the timer is enabled and expired, invoke the callback */
 		//if (_timer[i].callback != NULL) PORTD = 0xF0;
 
-		if ((_timer[i].callback != NULL) && (_timer[i].expiry == _timer_tick)) {
+		if ((_timer[i].callback != NULL) && (_timer[i].expiry <= _timer_tick)) {
 			if (_timer[i].state == READY) _timer[i].callback(_timer[i].arg);
 			
 			if (_timer[i].periodic > 0) {
@@ -46,7 +47,7 @@ ISR (TIMER1_COMPA_vect)    // Timer1 ISR
 				_timer[i].expiry += _timer[i].periodic;
 				} else {
 				/* If timer is not periodic, clear the callback to disable */
-				_timer[i].callback = NULL;
+				//_timer[i].callback = NULL;
 			}
 		}
 	}
@@ -59,8 +60,7 @@ ISR (TIMER1_COMPA_vect)    // Timer1 ISR
 	*/
 	
 	// Utilization diagnostic
-	
-	PORTC = 0;
+	PORTC ^= 0xFE;
 }
 
 
@@ -68,7 +68,7 @@ int TIMER_Init(void)
 {
     //Configure the PORTD4 as output
     TCNT1 = 0x0000;
-    OCR1A = 0x0960;   // 12C0 == 600us, 960 = 300 us
+    OCR1A = 0x0DE0;   // 12C0 == 600us, 960 = 300 us 0x0DE0 444us
     TCCR1A = 0x00;
     TCCR1B = (1<<CS10) | (1<<WGM12);  // Timer mode with no prescaling and CTC mode (reset counter on compare mode)
     TIMSK1 = (1 << OCIE1A) ;   // Enable timer1 output compare interrupt

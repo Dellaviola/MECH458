@@ -36,7 +36,6 @@ void STEPPER_Init()
 	stepper.next = 0;
 	stepper._delay = 0x14;
 	PORTA = 0x30;
-	PORTC = 0x00;
 	cli();
 	//Initial delay of 20ms
 	OCR2A = 0x90;
@@ -96,7 +95,8 @@ void STEPPER_SetRotation(uint8_t target, uint8_t next)
 
 ISR(TIMER2_COMPA_vect)
 {
-	PORTC = 0x0F;
+	PORTC ^= 0xFE;
+	PORTC |= 0x01;  
 	volatile uint8_t step[4] = {0x36, 0x2E, 0x2D, 0x35};
 	if (stepper._currentStep < stepper._targetStep)
 	{
@@ -126,4 +126,6 @@ ISR(TIMER2_COMPA_vect)
 		OCR2A = 0x07 * stepper._delay;
 		PORTA = (stepper._willContinue) ? PORTA : 0x00;
 	}
+	PORTC &= 0xFE;
+	PORTC ^= 0xFF;
 }

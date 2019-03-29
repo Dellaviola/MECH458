@@ -7,13 +7,14 @@
 #include "linkedlist.h"
 #include "sys.h"
 
-itemNode* LL_ItemInit(uint16_t reflVal, uint8_t magVal, classification class)
+itemNode* LL_ItemInit(uint16_t reflVal, uint8_t magVal, eclassification class, estatus status)
 {
 	//
 	itemNode* newItem = malloc(sizeof(itemNode));
 	newItem->reflect = reflVal;
 	newItem->magnet = magVal;
 	newItem->class = class;
+	newItem->status = status;
 	return newItem;
 }
 timerNode* LL_TimerInit(uint16_t timeout_ms, int periodic, void (*callback)(void *), void *arg, uint8_t priority)
@@ -32,8 +33,7 @@ timerNode* LL_TimerInit(uint16_t timeout_ms, int periodic, void (*callback)(void
 list* LL_ItemListInit(void* newNode)
 {
 	//
-	list* newList = (list*)malloc(sizeof(list));
-	
+	list* newList = (list*)malloc(sizeof(list));	
 	newList->node = (itemNode*)newNode;
 	newList->prev = NULL;
 	newList->next = NULL;
@@ -68,9 +68,12 @@ list* LL_AddBack(list* ref, void* newNode)
 {
 	//
 	list* tail = ref;
+	
 	while(tail->next) tail = LL_Next(tail);
 	
 	list* newList = LL_ItemListInit(newNode);
+
+
 	tail->next = newList;
 	
 	//SYS_Pause(__FUNCTION__);
@@ -117,7 +120,7 @@ uint8_t LL_Size(list* ref)
 	return tempsize;
 }
 
-classification LL_GetClass(list* ref)
+eclassification LL_GetClass(list* ref)
 {
 	//
 	return ((itemNode*)ref->node)->class;	
@@ -177,7 +180,7 @@ void LL_UpdateMag(list* ref, uint8_t newMag)
 	((itemNode*)ref->node)->magnet = newMag;
 	return;
 }
-void LL_UpdateClass(list* ref, classification newClass)
+void LL_UpdateClass(list* ref, eclassification newClass)
 {
 	//
 	((itemNode*)ref->node)->class = newClass;
@@ -200,4 +203,16 @@ void LL_UpdatePeriodic(list* ref, uint8_t newPeriodic)
 	//
 	((timerNode*)ref->node)->periodic = newPeriodic;
 	return;
+}
+void LL_UpdateStatus(list* ref, estatus newStatus)
+{
+	//
+	((itemNode*)ref->node)->status = newStatus;
+	return;
+}
+
+estatus LL_GetStatus(list* ref)
+{
+	//
+	return ((itemNode*)ref->node)->status;
 }

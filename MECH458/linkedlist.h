@@ -20,14 +20,23 @@ typedef enum classification_e
 	BLACK,
 	ALUMINUM,
 	STEEL,
-	UNCLASSIFIED
-}classification;
+	UNCLASSIFIED,
+	END_OF_LIST
+}eclassification;
+
+typedef enum status_e
+{
+	UNINITIALIZED,
+	INITIALIZED,
+	EXPIRED	
+}estatus;
 
 typedef struct itemNode_s
 {
 	uint16_t reflect;
 	uint8_t magnet;
-	classification class;
+	eclassification class;
+	estatus status;
 		
 }itemNode;
 
@@ -59,7 +68,7 @@ list* TAIL;
 list* STAGE1;
 list* STAGE2;
 
-itemNode* LL_ItemInit(uint16_t, uint8_t, classification);
+itemNode* LL_ItemInit(uint16_t, uint8_t, eclassification, estatus);
 timerNode* LL_TimerInit(uint16_t, int, void (*callback)(void *), void *, uint8_t);
 list* LL_ItemListInit(void *);
 list* LL_TimerListInit(void*);
@@ -74,7 +83,8 @@ list* LL_Remove(list*);
 list* LL_Head(list*);
 uint8_t LL_Size(list*);
 
-classification LL_GetClass(list*);
+eclassification LL_GetClass(list*);
+estatus LL_GetStatus(list*);
 uint16_t LL_GetRefl(list*);
 uint8_t LL_GetMag(list*);
 
@@ -90,7 +100,8 @@ void LL_UpdatePeriodic(list*, uint8_t);
 
 void LL_UpdateRefl(list*, uint16_t);
 void LL_UpdateMag(list*, uint8_t);
-void LL_UpdateClass(list*,classification);
+void LL_UpdateClass(list*,eclassification);
+void LL_UpdateStatus(list*, estatus);
 
 
 #endif /* LINKEDLIST_H_ */

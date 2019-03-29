@@ -254,6 +254,12 @@
     <None Include="DATAACQ.h">
       <SubType>compile</SubType>
     </None>
+    <Compile Include="EXECACQ.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="EXECACQ.h">
+      <SubType>compile</SubType>
+    </Compile>
     <Compile Include="linkedlist.c">
       <SubType>compile</SubType>
     </Compile>
