@@ -15,10 +15,7 @@ CLKPR = (1<<CLKPCE);
 CLKPR = 0;
 UART_Init();
 GPIO_Init();
-stepper_handle = -1;
-timer_handle = -1;
-delay_flag = -1;
-if (TIMER_Init() != 0) UART_SendString("TIMER DID NOT INITIALIZE"); //red leds error
+TIMER_Init();
 //Stepper_Setup();
 PWM_Init();
 ADC_Init();

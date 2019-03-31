@@ -212,7 +212,7 @@ void EXIT_Task(void* arg)
 	// If tray is in position
 	if(stepper.current == LL_GetClass(HEAD))
 	{
-		if(!gMotorOn) PWM(0x80);
+		if(!g_MotorOn) PWM(0x80);
 		LL_UpdateStatus(HEAD, EXPIRED);
 		HEAD = LL_Next(HEAD);
 		STEPPER_SetRotation(LL_GetClass(HEAD), LL_GetClass(HEAD->next));
@@ -303,7 +303,7 @@ void C_Picky(void *arg)
 void Do_Nothing(void *arg)
 {
 	(void) arg;
-	delay_flag = -1;
+	//delay_flag = -1;
 }
 void Say_Hello(void *arg)
 {

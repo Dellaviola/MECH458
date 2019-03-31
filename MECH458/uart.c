@@ -60,7 +60,7 @@ void UART_SendString(const char* str)
 	uint16_t counter = 0;
 	while(str[counter] != '\0')
 	{
-		UART_SendChar(s[counter]);
+		UART_SendChar(str[counter]);
 		counter++;
 	}
 }

@@ -23,7 +23,6 @@
 /* Program Includes */
 #include "config.h"
 #include "timer.h"
-#include "config.h"
 
 /*-----------------------------------------------------------*/
 

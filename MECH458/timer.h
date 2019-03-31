@@ -43,6 +43,7 @@ typedef struct timer
 
 /*-----------------------------------------------------------*/
 
+timer _timer[MAX_TIMERS];
 void TIMER_Init(void);
 int TIMER_Create(uint16_t, int, void (*callback)(void *) , void *);
 int TIMER_Delete(int);

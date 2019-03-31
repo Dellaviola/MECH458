@@ -25,26 +25,26 @@ void EXECACQ()
 
 	ATOMIC_BLOCK(ATOMIC_FORCEON)
 	{	
-		TIMER_Create(1, 1, SERVER_Task, NULL);		// Placeholder -- Calibration
-		SERVER_TMR.state = READY;
-	
-		TIMER_Create(1, 1, ADC_Task, NULL);		// ADC Handler
-		ADC_TMR.state = BLOCKED;
-	
-		TIMER_Create(1, 1, MAG_Task, NULL);		// Magnetic Sensor Polling
-		MAG_TMR.state = BLOCKED;
-	
+		TIMER_Create(1, 1, SERVER_Task, NULL);		// Optical Handling
+		_timer[0].state = READY;
+
+		TIMER_Create(1, 1, ADC_Task, NULL);			// ADC Handler
+		_timer[1].state = BLOCKED;
+
+		TIMER_Create(1, 1, MAG_Task, NULL);			// Magnetic Sensor Handler
+		_timer[2].state = BLOCKED;
+
 		TIMER_Create(1, 1, EXIT_Task, NULL);		// Item Exit Handling
-		EXIT_TMR.state = BLOCKED;
-	
-		TIMER_Create(1, 1, ADD_Task, NULL);		// Item Enter Handling
-		ADD_TMR.state = BLOCKED;
-	
+		_timer[3].state = BLOCKED;
+
+		TIMER_Create(180, 1, ADD_Task, NULL);		// Item Enter Handling
+		_timer[4].state = BLOCKED;
+
 		TIMER_Create(50, 1, BTN_Task, NULL);		// Button Handling
-		BTN_TMR.state = READY;
-	
-		TIMER_Create(1000, 1, D_Blinky, NULL);	// Event Handling
-		BLINKY_TMR.state = READY;				//_timer[6]
+		_timer[5].state = READY;
+
+		TIMER_Create(1000, 1, D_Blinky, NULL);		// Blinky Leds
+		_timer[6].state = READY;				//_timer[6]
 	
 		//UART_SendString("System Ready...\r\n");
 		PWM(0x80);
