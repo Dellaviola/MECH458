@@ -129,11 +129,16 @@ return 0;
 		// Check for a pause request
 		// Only pause during idle time to properly restart the scheduler on unpause
 		if(g_PauseRequest) SYS_Pause(__FUNCTION__);
-				
+
 		list* temp = HEAD;
+		
+		LL_UpdateClass(temp, STEEL);
+		temp = LL_Next(temp);
+		LL_UpdateClass(temp, ALUMINUM);
 		uint16_t reflVal; 
 
-		while(temp){
+		while(temp)
+		{
 			if(temp && (LL_GetClass(temp) == UNCLASSIFIED) && (LL_GetStatus(temp) == SORTABLE))
 			{
 				//classify temp

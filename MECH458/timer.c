@@ -23,7 +23,7 @@ static volatile uint16_t _timer_tick = 0;
 
 ISR (TIMER1_COMPA_vect)    // Timer1 ISR
 {
-	//PORTC ^= 0xFE;
+	PORTC ^= 0xFE;
 	// Scheduler timer
 		// Overhead: 44.4 us
 		// min frame size 444us = 3552 ticks = 0x0DE0;
@@ -60,7 +60,7 @@ ISR (TIMER1_COMPA_vect)    // Timer1 ISR
 	*/
 	
 	// Utilization diagnostic
-	//PORTC ^= 0xFE;
+	PORTC ^= 0xFE;
 }
 
 

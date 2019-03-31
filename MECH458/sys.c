@@ -26,6 +26,7 @@ void SYS_Init()
 	g_ADCCount = 0;
 	memset(g_ADCResult, 0, sizeof(g_ADCResult));
 	g_ADCFlag = 0;
+	g_PauseRequest = 0;
 	
 // 	extern list* HEAD;
 // 	extern list* STAGE1;
@@ -44,7 +45,7 @@ void SYS_Init()
 	
 	HEAD = LL_ItemListInit(initNode);
 	FRONT = HEAD;
-	for(int i = 47; i > 0; i--)
+	for(int i = 0; i < 48; i++)
 	{
 		initNode = LL_ItemInit(65000 - i,250 - i, UNCLASSIFIED, UNINITIALIZED);
 		TAIL = LL_AddBack(HEAD, initNode);
@@ -76,6 +77,7 @@ void SYS_Pause(char str[20])
 	int c = 0;
 	
 	sprintf(buffer,"System Pause Message: %s\r\n", str);
+	UART_SendString(buffer);
 	
 	while (LL_GetClass(temp) != END_OF_LIST)
 	{

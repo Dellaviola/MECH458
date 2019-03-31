@@ -255,7 +255,7 @@ void SERVER_Task(void* arg)
 	 * samples inputs at 2.25khz
 	 */
 	//PORTC = 0x01;
-	static uint8_t pin7state = 1;
+	static uint8_t pin7state = 0;
 	static uint8_t pin6state = 1;
 	static uint8_t pin5state = 1;
 //	static uint8_t temp = 0;
@@ -296,7 +296,7 @@ void SERVER_Task(void* arg)
 		{
 			// Transition Detected O3 High -> Low : Item At End
 			_timer[3].state = READY;
-			g_PauseRequest = 1;
+			//g_PauseRequest = 1;
 			g_WDTimeout = 0;
 		}
 		pin5state = 0;
