@@ -1,17 +1,33 @@
-//pwm.h
-//implemnet PWM functions
+/*
+        pwm.h
+
+        2019-02-21
+
+        Mario Dellaviola
+
+        
+        pwm for DC motor
+*/
 #ifndef PWM_H_
 #define PWM_H_
 
-#include <stdlib.h>        // the header of the general purpose standard library of C programming language
+/* Standard Includes*/
+#include <stdlib.h>
 #include <stdint.h>
-#include <avr/io.h>        // the header of i/o port
-#include <util/atomic.h>    // atomic blocks to handle blocking tasks
-#include <avr/interrupt.h> // Delay functions for AT90USBKey
+
+/* AVR Includes */
+#include <avr/interrupt.h>
+#include <util/atomic.h> 
+#include <avr/io.h>   
+
+/* Program Includes */
 #include "config.h"
+
+/*-----------------------------------------------------------*/
 
 void PWM_Init(void);
 void PWM(int);
 
+/*-----------------------------------------------------------*/
 
-#endif
+#endif // PWM_H_

@@ -6,19 +6,20 @@
         Mario Dellaviola
 
         gpio
+        commented code implements interrupts for optical sensors
 */
 
+/* Header */
 #include "gpio.h"
-#include "timer.h"
-#include "sys.h"
 
-extern list* HEAD;
-extern list* STAGE1;
-extern list* STAGE2;
-extern list* TAIL;
-extern list* FRONT;
 
-int GPIO_Init(void){
+//#include "timer.h"
+//#include "sys.h"
+
+/*-----------------------------------------------------------*/
+
+int GPIO_Init(void)
+{
 
     DDRA = 0xFF;  // Sets all pins on Port A to output
     DDRB = 0xFF;  // Sets all pins on Port B to output for PWM [7]
@@ -34,7 +35,7 @@ int GPIO_Init(void){
 // 	EIMSK |= ((1 << INT7) | (1 << INT6) | (1 << INT5));
 
     return 0;
-}
+} // GPIO_Init
 
 // ISR(INT7_vect)
 // {

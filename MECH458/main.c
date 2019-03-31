@@ -1,12 +1,15 @@
 //########################################################################
-//# MILESTONE : 2
-//# PROGRAM : 2
-//# PROJECT : Lab2
-//# GROUP : X
+//# MECH 458 Project Code
 //# NAME 1 : Marc, Bonwick V00707226
 //# NAME 2 : Mario, Dellaviola, V00817406
-//# DESC : This program does Nightrider using the internal oscillators
-//# DATA
+//# DESC : 	This program sorts items using reflectance and inductance readings
+//			Implemented with a clock driven scheduler operating off timer 1 interrupts
+//			Stepper driven by timer 2 interrupts
+//			No external interrupts are used
+//
+//# DATA	Interesting run time statistics
+//					
+//
 //# REVISED 28-01-2019
 //########################################################################
 
@@ -28,20 +31,19 @@
 #include "string.h"
 #include "sys.h"
 
+
+// Test Modes
 #define DATAMODE 0
 #define LISTUNITTEST 0
 #define TIMERUNITTEST 0
 #define EXECMODE 0
 
-
+// Make sure to use the correct lists
 extern list* HEAD;
 extern list* STAGE1;
 extern list* STAGE2;
 extern list* TAIL;
 extern list* FRONT;
-
-
-//volatile uint16_t gTimerTick = 0;
 
 int main(void)
 {	
@@ -66,8 +68,10 @@ int main(void)
 	return 0;
 #endif
 	
+	// Initialize the system
 	SYS_Init();
 
+	// Wait for start signal
 	while(1)
 	{
 		if((PIND & 0x03) == 0x00) // Both Buttons
@@ -77,15 +81,16 @@ int main(void)
 		}
 	}
 	
+	// Start tasks and enable interrupts
 	ATOMIC_BLOCK(ATOMIC_FORCEON)
 	{
-		TIMER_Create(1, 1, SERVER_Task, NULL);		// Placeholder -- Calibration
+		TIMER_Create(1, 1, SERVER_Task, NULL);		// Optical Handling
 		_timer[0].state = READY;
 		
-		TIMER_Create(1, 1, ADC_Task, NULL);		// ADC Handler
+		TIMER_Create(1, 1, ADC_Task, NULL);			// ADC Handler
 		_timer[1].state = BLOCKED;
 		
-		TIMER_Create(1, 1, MAG_Task, NULL);		// Magnetic Sensor Polling
+		TIMER_Create(1, 1, MAG_Task, NULL);			// Magnetic Sensor Handler
 		_timer[2].state = BLOCKED;
 		
 		TIMER_Create(1, 1, EXIT_Task, NULL);		// Item Exit Handling
@@ -97,12 +102,13 @@ int main(void)
 		TIMER_Create(50, 1, BTN_Task, NULL);		// Button Handling
 		_timer[5].state = READY;
 		
-		TIMER_Create(1000, 1, D_Blinky, NULL);	// Event Handling
+		TIMER_Create(1000, 1, D_Blinky, NULL);		// Blinky Leds
 		_timer[6].state = READY;				//_timer[6]
 
 		UART_SendString("System Ready...\r\n");
 		PWM(0x80);
 	};
+
 	// Put IDLE operations in infinite loop
 	while (1)
 	{		
@@ -144,19 +150,15 @@ int main(void)
 // 			}
 // 			temp = LL_Next(temp);
 // 		}
-
-// 	if ((PINE & 0x01) != 0x01) SYS_Pause(__FUNCTION__);
-// 
   	}
-	
 	return 0;
 }
 
+// Catch bad isrs
 ISR(BADISR_vect)
 {
 	while(1)
 	{
 		PORTC = 0xAA;
-		//TIMER_Create(4000, 1, C_Blinky, NULL);
 	}
 }

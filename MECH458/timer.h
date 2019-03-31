@@ -3,32 +3,24 @@
         2019-02-21
         Mario Dellaviola
         timer prototypes and definitions.
-        Timer Structure:
-                            expiry:     timing length
-                            periodic:   no repeat (0) repeat (1)
-                            callback pointer: function called on timer interrupt
-                            void*: available to pass a parameter to callback
-        
-        Timer_Init()
-            sets up timer/counter1
-        Timer_Create()
-            makes a new timer stored in the timer struct.
-            param1: number of milliseconds (up to 65000)
-            param2: binary flag for periodicness
-            param3: pointer to a function
-            param4: NULL or paramater that can be passed to function
 */
-
 
 #ifndef TIMER_H_
 #define TIMER_H_
 
-#include <stdlib.h>        // the header of the general purpose standard library of C programming language
+/* Standard Includes */
+#include <stdlib.h>        
 #include <stdint.h>
-#include <avr/io.h>        // the header of i/o port
-#include <util/atomic.h>    // atomic blocks to handle blocking tasks
-#include <avr/interrupt.h> // Delay functions for AT90USBKey
+
+/* AVR Includesd */
+#include <avr/io.h>      
+#include <avr/interrupt.h> 
+
+/* Program Includes */
 #include "config.h"
+#include "string.h"
+
+/*-----------------------------------------------------------*/
 
 typedef enum eTaskState 
 {
@@ -37,6 +29,8 @@ typedef enum eTaskState
 	READY,
 	SUSPENDED
 }eTaskState;
+
+/*-----------------------------------------------------------*/
 
 typedef struct timer
 {
@@ -47,23 +41,11 @@ typedef struct timer
 	eTaskState state;
 }timer;
 
-timer _timer[MAX_TIMERS];
-timer SERVER_TMR;
-timer ADC_TMR;
-timer MAG_TMR;
-timer EXIT_TMR;
-timer ADD_TMR;
-timer BTN_TMR;
-timer BLINKY_TMR;
+/*-----------------------------------------------------------*/
 
-
-int TIMER_Init(void);
+void TIMER_Init(void);
 int TIMER_Create(uint16_t, int, void (*callback)(void *) , void *);
 int TIMER_Delete(int);
 void Delay_Create(uint16_t);
 
-
-
-
-
-#endif
+#endif // TIMER_H_

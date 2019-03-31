@@ -1,0 +1,13 @@
+{
+    "files.associations": {
+        "uart.h": "c",
+        "stdlib.h": "c",
+        "timer.h": "c",
+        "blinky.h": "c",
+        "gpio.h": "c",
+        "sys.h": "c",
+        "string.h": "c",
+        "pwm.h": "c",
+        "config.h": "c"
+    }
+}

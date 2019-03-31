@@ -8,36 +8,281 @@
         call back functions used in timers
 */
 
-// TODO: Figure out why ADC only runs 8 times.
-
-
-#include <stdlib.h>        // the header of the general purpose standard library of C programming language
-#include <stdint.h>         
-#include <avr/io.h>        // the header of i/o port
-#include "config.h" 
+/* Header */
 #include "blinky.h"
-#include "uart.h"
-#include "timer.h"
-#include "stepper.h"
-#include "pwm.h"
-#include "sys.h"
-#include "linkedlist.h"
 
+/*-----------------------------------------------------------*/
+
+// Make sure this file is accessing the correct list
 extern list* HEAD;
 extern list* STAGE1;
 extern list* STAGE2;
 extern list* TAIL;
 extern list* FRONT;
 
+/*-----------------------------------------------------------*/
+/* 					Scheduler Functions 					 */
+
+void SERVER_Task(void* arg)
+{
+	//
+	/*! 
+	* \brief 	Track optical sensor state changes
+	*			Handles optical sensor events
+	* \param	Unused
+	*/	
+
+	// State variables
+	static uint8_t pin7state = 1;
+	static uint8_t pin6state = 1;
+	static uint8_t pin5state = 1;
+	
+	// E7 : O1 (Enter)
+	if((PINE & 0x80) == 0) 
+	{
+		// Transition Detected O1 High -> Low : Item Enters
+		if(pin7state)
+		{
+			// Signal the start of the system by placing the first node into stage1
+			if(STAGE1 == NULL) STAGE1 = HEAD;
+
+		}
+		pin7state = 0;
+	}
+	
+	// E6 : O2 (Reflective)
+	if((PINE & 0x40) == 0) 
+	{
+		// Transition Detected O2 High -> Low : Stop ADC
+		if(pin6state)
+		{
+			// Nothing happens here
+		}
+		pin6state = 0;
+	}
+	
+	// E5 : O3 (Exit)
+	if((PINE & 0x20) == 0) 
+	{
+		// Transition Detected O3 High -> Low : Item At End
+		if(pin5state)
+		{
+			// Unblock EXIT_Task
+			_timer[3].state = READY;
+			SYS_Pause(__FUNCTION__);
+		}
+		pin5state = 0;
+	}
+	
+	// E7 : O1 (Enter)
+	if((PINE & 0x80) == 0x80) 
+	{
+		// Transition Detected O2 Low -> High : Item Exits O1
+		if(!pin7state)
+		{
+			// Unblock MAG_Task
+			_timer[2].state = READY;	
+		}
+		pin7state = 1;
+	}
+
+	// E6 : O2 (Reflective)	
+	if((PINE & 0x40) == 0x40) 
+	{
+		// Transition Detected O1 Low -> High : Item enters ADCs
+		if(!pin6state)
+		{
+
+			if(STAGE2 == NULL)
+			{
+				// First Item enters stage 2
+				STAGE2 = HEAD; 
+			}
+			else
+			{
+				// Increment stage 2
+				STAGE2 = LL_Next(STAGE2); 
+			}
+			ADCSRA |= (1 << ADSC);
+		}
+		pin6state = 1;			
+	}
+		
+	if((PINE & 0x20) == 0x20) // E5
+	{
+		// Transition Detected O3 Low -> High : Item Exits System
+		if(!pin5state)
+		{
+			// Nothing happens here
+		}
+		pin5state = 1;			
+	}
+} // SERVER_Task
+
+void ADC_Task(void* arg)
+{	
+	//
+	/*!
+	 * \brief 	Averages last 10 ADC values every 444 - 450 us for low pass filtering
+	 * 			Checks if current items reflectivity is lower than new value
+	 * 			Replaces item if condition is met and restarts ADC	
+	 *  \param  Unused
+	 */
+
+	size_t i;
+	uint32_t total = 0;
+	char buff[50];
+	static int j = 0;
+	j++;
+	
+	// Averaging
+	// Use atomic blocks to prevent interrupts while writing to multi-byte data
+	for(i = 0; i < 10; i++)
+	{
+		ATOMIC_BLOCK(ATOMIC_RESTORESTATE)
+		{
+			total += g_ADCResult[i];
+		}
+	}
+
+	ATOMIC_BLOCK(ATOMIC_RESTORESTATE)
+	{
+		total = total/10;
+	}
+	
+	// Min Reflectivity Condition
+	ATOMIC_BLOCK(ATOMIC_RESTORESTATE)
+	{
+		if((total > 10) && (total < 900) && (total < LL_GetRefl(STAGE2)))
+		{
+			if (STAGE2) LL_UpdateRefl(STAGE2, total);
+		}
+	}
+	
+	g_ADCCount = 0;
+
+	// Block ADC_Task
+	_timer[1].state = BLOCKED;
+
+	// Restart ADC
+	if((PINE & 0x40) == 0x40) ADCSRA |= (1 << ADSC);
+
+} // ADC_Task
+
+void MAG_Task(void* arg)
+{
+	//
+	/*! 
+	* \brief 	Checks ferro magnetic sensor
+	*			If belt is moving a magnetic item will be detected within 30 cycles
+	* \param	Unused
+	*/
+	static uint8_t tick = 0;	
+	if (g_MotorOn) tick++;
+	char buff[2];
+
+	// If the item is magnetic
+	if((PINE & 0x10) == 0)
+	{
+		LL_UpdateStatus(STAGE1, INITIALIZED);
+		LL_UpdateMag(STAGE1, 1);
+		STAGE1 = LL_Next(STAGE1);
+		_timer[2].state = BLOCKED;
+		tick = 0;
+	}
+	// If the item is not magnetic
+	else if(tick > 30)
+	{	
+		LL_UpdateStatus(STAGE1, INITIALIZED);
+		LL_UpdateMag(STAGE1, 0);
+		STAGE1 = LL_Next(STAGE1);
+		_timer[2].state = BLOCKED;
+		tick = 0;
+	}
+} // MAG_Task
+
+void EXIT_Task(void* arg)
+{
+	//
+	/*! 
+	* \brief 	Handles an item at the end of the conveyor belt
+	*
+	* \param	Unused
+	*/
+	// If tray is in position
+	if(stepper.current == LL_GetClass(HEAD))
+	{
+		if(!gMotorOn) PWM(0x80);
+		LL_UpdateStatus(HEAD, EXPIRED);
+		HEAD = LL_Next(HEAD);
+		STEPPER_SetRotation(LL_GetClass(HEAD), LL_GetClass(HEAD->next));
+		_timer[3].state = BLOCKED;
+	}
+	// If tray is not in position
+	else
+	{
+		PWM(0);
+	}
+
+	// Rampdown
+	if(LL_GetClass(HEAD) == END_OF_LIST);
+} // EXIT_Task
+
+void BTN_Task(void* arg)
+{
+	//
+	/*! 
+	* \brief 	Debounces button presses
+	*			Handles button events
+	* \param	Unused
+	*/
+	static uint8_t debounce = 0;
+	
+	if (PIND & 0x03)
+	{
+		debounce++;
+		if(debounce > 2)
+		{
+			// Both Buttons : No Function
+			if((PIND & 0x03) == 0x00) 
+			{
+				UART_SendString("Both Buttons Pressed!\r\n");
+				debounce = 0;
+			}
+			// Button 1 : Pause System
+			else if ((PIND & 0x03) == 0x01) 
+			{
+				UART_SendString("Button1 Pressed!\r\r\r\rPausing System...");
+				SYS_Pause("Pause Requested");
+				g_IdleStartTime = 0;
+				debounce = 0;
+			}
+			// Button 2 : Force Ramp Down 
+			else if ((PIND & 0x03) == 0x02) 
+			{
+				UART_SendString("Button2 Pressed!\r\n");
+				debounce = 0;
+			}
+			// Spurious
+			else
+			{
+				
+				debounce = 0;
+			}
+		}
+	}	
+} // BTN_Task
+
+/*-----------------------------------------------------------*/
+/* 					Debug and LED functions					 */
+
 void D_Blinky(void *arg)
 {
-	//PORTC = 0x40;
 	//flashing green and red onboard leds
 	(void) arg;
 	
 	PORTD ^= 0xA0;
 }
-
 void C_Blinky(void *arg)
 {
 	// flashing the led bank
@@ -65,288 +310,37 @@ void Say_Hello(void *arg)
 	(void) arg;
 	UART_SendString("Hello!\r\n");
 }
-void ADC_Task(void* arg)
-{	
-	//
-	/* Averages last 10 ADC values every 444 - 450 us for low pass filtering
-	 * Checks if current items reflectivity is lower than new value
-	 * Replaces item if condition is met and restarts ADC	
-	 */
-		
-	//PORTC = 0x02;
-	//PORTC ^= 0xFF;
-	size_t i;
-	uint32_t total = 0;
-	char buff[50];
-	static int j = 0;
-	j++;
-	
-	for(i = 0; i < 10; i++)
-	{
-		ATOMIC_BLOCK(ATOMIC_RESTORESTATE){
-			total += g_ADCResult[i];
-// 			sprintf(buff, "Total: %u, i: %u, ADC: %u\r\n",total,i,g_ADCResult[i]);
-// 			UART_SendString(buff);
-		}
-	}
-	ATOMIC_BLOCK(ATOMIC_RESTORESTATE){
-		total = total/10;
-	}
-	
-	ATOMIC_BLOCK(ATOMIC_RESTORESTATE){
-		if((total > 0) && (total < 2000) && (total < LL_GetRefl(STAGE2)))
-		{
-			if (STAGE2) LL_UpdateRefl(STAGE2, total);
-		}
-	}
-	
-	g_ADCCount = 0;
-	_timer[1].state = BLOCKED;
-	if((PINE & 0x40) == 0x40) ADCSRA |= (1 << ADSC);
-	else
-	{
-		char bf[5];
-		sprintf(bf, "Runs: %d/r/n", j);
-		UART_SendString(bf);
-	}
-}
-void MAG_Task(void* arg)
-{
-	//
-	/* Checks magnetic sensor
-	 * runs for [pwm ticks] or until an item is found to be magnetic 
-	 *		
-	 */
-	
-	//PORTC = 0x04;
-	//static uint8_t count = 0;
-	static uint16_t tick = 0;
-	if (gMotorOn) tick++;
-	char buff[2];
-	if((PINE & 0x10) == 0)
-	{
-		LL_UpdateStatus(STAGE1, INITIALIZED);
-		LL_UpdateMag(STAGE1, 1);
-		STAGE1 = LL_Next(STAGE1);
-		_timer[2].state = BLOCKED;
-// 		sprintf(buff,"%u" ,tick);
-// 		SYS_Pause(buff);
-		//count = 0;
-		tick = 0;
-	}
-	else if(tick > 30)
-	{	
-		LL_UpdateStatus(STAGE1, INITIALIZED);
-		LL_UpdateMag(STAGE1, 0);
-		STAGE1 = LL_Next(STAGE1);
-		_timer[2].state = BLOCKED;
-		//SYS_Pause(__FUNCTION__);
-//  		sprintf(buff,"%u" ,temp);
-//  		SYS_Pause(buff);
-		tick = 0;
-		//count = 0;
-	}
-	
-	
-	//SYS_Pause(__FUNCTION__);
-}
-void EXIT_Task(void* arg)
-{
-	//
-	/* Stops motor until tray is in position
-	 * Processes item status
-	 */
-	//PORTC = 0x08;
-	if(stepper.current == LL_GetClass(HEAD))
-	{
-		//if(!gMotorOn) PWM(0x80);
-		LL_UpdateStatus(HEAD, EXPIRED);
-		HEAD = LL_Next(HEAD);
-		STEPPER_SetRotation(LL_GetClass(HEAD), LL_GetClass(HEAD->next));
-		_timer[3].state = BLOCKED;
-	}
-	else
-	{
-		//PWM(0);
-	}
-	if(LL_GetClass(HEAD) == END_OF_LIST); // rampdown
-	
-	//SYS_Pause(__FUNCTION__);
-}
-void IDLE_Task(void* arg)
-{
-	//
-	/* does nothing
-	 * 	placeholder for now
-	 */
-	while(1) {;}
-}
-void BTN_Task(void* arg)
-{
-	//
-	/* Debounces button inputs
-	 *  
-	 *	
-	 */
-	//PORTC = 0x20;
-	static uint8_t debounce = 0;
-	
-	if (PIND & 0x03)
-	{
-		debounce++;
-		if(debounce > 2)
-		{
-			if((PIND & 0x03) == 0x00) // Both Buttons : No Function
-			{
-				UART_SendString("Both Buttons Pressed!\r\n");
-				debounce = 0;
-			}
-			else if ((PIND & 0x03) == 0x01) // Button 1 : Pause System
-			{
-				UART_SendString("Button1 Pressed!\r\r\r\rPausing System...");
-				SYS_Pause("Pause Requested");
-				g_IdleStartTime = 0;
-				debounce = 0;
-			} 
-			else if ((PIND & 0x03) == 0x02) // Button 2 : Ramp Down
-			{
-				UART_SendString("Button2 Pressed!\r\n");
-				debounce = 0;
-			}
-			else
-			{
-				//spurious
-				debounce = 0;
-			}
-		}
-	}
-	
-}
+
+/*-----------------------------------------------------------*/
+/* 					Unused Functions						 */
+
+
 void ADD_Task(void* arg)
 {
 	//
-	/* When an item enters the first optical sensor
-	 * Unblocks magnetic sensor task
-	 *	
-	 */
-	//PORTC = 0x10;
-// 	if ((PINE & 0x08) == 0)
-// 	{
-// 		if (STAGE1 != NULL) STAGE1 = LL_Next(STAGE1);
-// 		if (STAGE1 == NULL) STAGE1 = HEAD;
-// 		LL_UpdateStatus(STAGE1, INITIALIZED);
-// 		_timer[4].state = BLOCKED;
-// 	}
+	/*! 
+	* \brief 	Initialize a new item to the list
+	*			Functionality moved to compile time
+	* \param	Unused
+	*/	
+} // ADD_Task
 
-	//_timer[2].state = READY;
-
-	
-	//SYS_Pause(__FUNCTION__);	
-}
 void STEPPER_Task(void* arg)
 {
 	//
-}
-void SERVER_Task(void* arg)
+	/*! 
+	* \brief 	Send required positon to stepper
+	*			Functionality moved to TIMER2
+	* \param	Unused
+	*/	
+} // STEPPER_Task
+void IDLE_Task(void* arg)
 {
 	//
-	/* Optical Handler
-	 * Tracks optical input states and unblocks tasks accordingly
-	 * samples inputs at 2.25khz
-	 */
-	//PORTC = 0x01;
-	static uint8_t pin7state = 1;
-	static uint8_t pin6state = 1;
-	static uint8_t pin5state = 1;
-//	static uint8_t temp = 0;
-	
-	if((PINE & 0x80) == 0) // E7
-	{
-		if(pin7state)
-		{
-			// Transition Detected O1 High -> Low : Item Enters		
-			// Just signal the start of the system by placing the first node into stage 1
-			if(STAGE1 == NULL) STAGE1 = HEAD;
-
-		}
-		pin7state = 0;
-	}
-	
-	if((PINE & 0x40) == 0) // E6
-	{
-		if(pin6state)
-		{
-			// Transition Detected O2 High -> Low : Stop ADC
-				// The ADC is started on the Low -> High edge
-				// Once the ADC finishes ten conversions it enables the ADC handling task
-				// The ADC handling task restarts conversions as long as this pin is high
-				// If the pin goes High -> Low, the ADC task will finish and wont restart the ADC
-				// So nothing happens here.
-		}
-		pin6state = 0;
-	}
-	
-	if((PINE & 0x20) == 0) // E5
-	{
-		if(pin5state)
-		{
-			// Transition Detected O3 High -> Low : Item At End
-			_timer[3].state = READY;
-			SYS_Pause(__FUNCTION__);
-		}
-		pin5state = 0;
-	}
-	
-	if((PINE & 0x80) == 0x80) // E7
-	{
-		if(!pin7state)
-		{
-			// Transition Detected O2 Low -> High : Item Exits O1
-			// Unblock the magnetic sensor when the item leaves O1
-			// The magnetic sensor blocks once the magnetism of the piece is inferred
-			_timer[2].state = READY;	
-		}
-		pin7state = 1;
-	}
-		
-	if((PINE & 0x40) == 0x40) // E6
-	{
-		if(!pin6state)
-		{
-			// Transition Detected O1 Low -> High : Item enters ADC
-			if(STAGE2 == NULL)
-			{
-				STAGE2 = HEAD; // First Item enters stage 2
-			}
-			else
-			{
-				STAGE2 = LL_Next(STAGE2); // Increment stage 2
-			}
-			ADCSRA |= (1 << ADSC);
-		}
-		pin6state = 1;			
-	}
-		
-	if((PINE & 0x20) == 0x20) // E5
-	{
-		if(!pin5state)
-		{
-			// Transition Detected O3 Low -> High : Item Exits System
-		}
-		pin5state = 1;			
-	}
-}
-
-//ISR(INT7_vect)
-//{
-	
-//}
-
-//ISR(INT6_vect)
-//{
-	
-//}
-//ISR(INT5_vect)
-//{
-	
-//}
+	/*! 
+	* \brief 	Placeholder
+	*			Would handle idle time, functionality moved to main
+	* \param	Unused
+	*/
+	while(1) {;}
+} // IDLE_Task

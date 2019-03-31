@@ -1,18 +1,34 @@
-// adc.h
-//Implements ADC Functions
+/*
+        adc.h
 
+        2019-02-21
 
+        Mario Dellaviola
+
+        
+        callback functions for timers
+*/
 
 #ifndef ADC_H_
 #define ADC_H_
 
-#include <stdlib.h>        // the header of the general purpose standard library of C programming language
+/* Standard Includes*/
+#include <stdlib.h>
 #include <stdint.h>
-#include <avr/io.h>        // the header of i/o port
-#include <util/atomic.h>    // atomic blocks to handle blocking tasks
-#include <avr/interrupt.h> // Delay functions for AT90USBKey
+
+/* AVR Includes */
+#include <avr/interrupt.h>
+#include <util/atomic.h> 
+
+/* Program Includes */
 #include "config.h"
-//Sets up registers for ADC
+#include "timer.h"
+#include "config.h"
+
+/*-----------------------------------------------------------*/
+
 void ADC_Init(void);
 
-#endif
+/*-----------------------------------------------------------*/
+
+#endif //ADC_H_
