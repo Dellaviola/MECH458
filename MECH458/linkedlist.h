@@ -67,6 +67,7 @@ list* HEAD;
 list* TAIL;
 list* STAGE1;
 list* STAGE2;
+list* FRONT;
 
 itemNode* LL_ItemInit(uint16_t, uint8_t, eclassification, estatus);
 timerNode* LL_TimerInit(uint16_t, int, void (*callback)(void *), void *, uint8_t);

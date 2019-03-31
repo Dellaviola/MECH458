@@ -38,16 +38,24 @@ typedef enum eTaskState
 	SUSPENDED
 }eTaskState;
 
-struct timer
+typedef struct timer
 {
     uint16_t expiry;
     uint16_t periodic;
     void (*callback)(void *);
     void* arg;
 	eTaskState state;
-};
+}timer;
 
-struct timer _timer[MAX_TIMERS];
+timer _timer[MAX_TIMERS];
+timer SERVER_TMR;
+timer ADC_TMR;
+timer MAG_TMR;
+timer EXIT_TMR;
+timer ADD_TMR;
+timer BTN_TMR;
+timer BLINKY_TMR;
+
 
 int TIMER_Init(void);
 int TIMER_Create(uint16_t, int, void (*callback)(void *) , void *);

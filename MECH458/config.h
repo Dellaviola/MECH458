@@ -68,6 +68,7 @@ volatile uint16_t gTimerTick;
 list* gScheduler;
 volatile uint8_t gMotorOn;
 volatile uint8_t gSysCalibrated;
+
 /*
 		LED error indicators
 */

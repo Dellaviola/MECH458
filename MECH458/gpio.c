@@ -12,6 +12,11 @@
 #include "timer.h"
 #include "sys.h"
 
+extern list* HEAD;
+extern list* STAGE1;
+extern list* STAGE2;
+extern list* TAIL;
+extern list* FRONT;
 
 int GPIO_Init(void){
 
@@ -22,11 +27,11 @@ int GPIO_Init(void){
 	DDRE = 0x00;
     DDRF = 0x00;  // Sets all pins on Port F to input for ADC
 
-// 	EICRB |= ((1 << ISC71) | (1 << ISC70)
-// 			| (1 << ISC60)
-// 			| (1 << ISC51));
+// 	EICRB |= ((1 << ISC70)					// O1 Both
+// 			| (1 << ISC61) | (1 << ISC60)	// 02 Rising			
+// 			| (1 << ISC51));				// 03 Falling
 // 			
-// 	EIMSK |= ((1 << INT7) | (1 << INT6) | (1 << 5));
+// 	EIMSK |= ((1 << INT7) | (1 << INT6) | (1 << INT5));
 
     return 0;
 }
@@ -34,8 +39,16 @@ int GPIO_Init(void){
 // ISR(INT7_vect)
 // {
 // 	// STAGE 1
-// 	if((PINE & 0x80) == 0) _timer[4].state = READY;
-// 	EIFR |= (1 << INTF7);
+// 	if((PINE & 0x80) == 0) // Falling edge
+// 	{
+// 		// _timer[4].state = READY;
+// 		if(STAGE1 == NULL) STAGE1 = HEAD;
+// 	}
+// 	else if((PINE & 0x80) == 0x80) // Rising Edge
+// 	{
+// 		_timer[2].state = READY;
+// 	}
+// 	//EIFR |= (1 << INTF7);
 // 	
 // 	//SYS_Pause("ISR7");
 // }
@@ -43,16 +56,19 @@ int GPIO_Init(void){
 // {
 // 	// STAGE 2
 // 	// UNBLOCK ADC
-// 	if ((PINE & 0x60) == 0)
+// 	if((PINE & 0x40) == 0)
 // 	{
-// 		ADCSRA |= (1 << ADEN);
-// 		EIFR |= (1 << INTF6);
-// 	} 
-// 	else if ((PINE & 0x60) == 0x60)
-// 	{
-// 		ADCSRA &= (0 << ADEN);
-// 		EIFR |= (1 << INTF6);
-// 	} 
+// 		if(STAGE2 == NULL)
+// 		{
+// 			STAGE2 = HEAD;
+// 		}
+// 		else
+// 		{	
+// 			STAGE2 = LL_Next(STAGE2);
+// 		}
+// 		//ADCSRA |= (1 << ADSC);
+// 	}
+// 	
 // 	//SYS_Pause("ISR6");
 // }
 // ISR(INT5_vect)
@@ -61,11 +77,14 @@ int GPIO_Init(void){
 // 	
 // 	// Check position flags
 // 	// Disable DC motor
-// 	
-// 	_timer[3].state = READY;
-// 	EIFR |= (1 << INTF7);
+// 	if((PINE & 0x20) == 0)
+// 	{	
+// 		_timer[3].state = READY;
+// 		SYS_Pause("ISR5");
+// 	}
+// 	//EIFR |= (1 << INTF5);
 // 	//SYS_Pause("ISR5");
 // 	
 // }
-// 
+
 

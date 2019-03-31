@@ -32,17 +32,26 @@ void SYS_Init()
 	memset(g_ADCResult, 0, sizeof(g_ADCResult));
 	g_ADCFlag = 0;
 	
+// 	extern list* HEAD;
+// 	extern list* STAGE1;
+// 	extern list* STAGE2;
+// 	extern list* TAIL;
+//	extern list* FRONT;	
+	itemNode* initNode = NULL;
+	
 	HEAD = NULL;
 	TAIL = NULL;
 	STAGE1 = NULL;
 	STAGE2 = NULL;
+	FRONT = NULL;
 	
-	listNode* initNode = LL_ItemInit(65000,250,UNCLASSIFIED,UNINITIALIZED);
+	initNode = LL_ItemInit(65001,255, UNCLASSIFIED, UNINITIALIZED);
 	
 	HEAD = LL_ItemListInit(initNode);
-	
+	FRONT = HEAD;
 	for(int i = 47; i > 0; i--)
 	{
+		initNode = LL_ItemInit(65000 - i,250 - i, UNCLASSIFIED, UNINITIALIZED);
 		TAIL = LL_AddBack(HEAD, initNode);
 	}
 	
@@ -50,8 +59,8 @@ void SYS_Init()
 	LL_AddBack(HEAD,initNode);
 	
 	//PORTC = LL_Size(HEAD);
-	char temp[5];
-	sprintf(temp,"%u\r\n", LL_Size(HEAD));
+	char temp[50];
+	sprintf(temp,"%u\r\nHEAD: %x, TAIL: %x, FRONT: %x, END: %x\r\n", LL_Size(HEAD), HEAD, TAIL, FRONT, TAIL->next);
 	UART_SendString(temp);
 	//sei();
 
@@ -62,21 +71,33 @@ void SYS_Pause(char str[20])
 	cli();
 	PWM(0);
 	char buffer[100];
-	if(HEAD) sprintf(buffer, "%s: Item Refl: %u, Item Mag: %u, Item Class: %u\r\n", str, LL_GetRefl(HEAD), LL_GetMag(HEAD), LL_GetClass(HEAD));
-	if(HEAD) UART_SendString(buffer);
-	if(STAGE1) sprintf(buffer, "%s: Item Refl: %u, Item Mag: %u, Item Class: %u\r\n", str, LL_GetRefl(STAGE1), LL_GetMag(STAGE1), LL_GetClass(STAGE1));
-	if(STAGE1) UART_SendString(buffer);
-	if(STAGE2) sprintf(buffer, "%s: Item Refl: %u, Item Mag: %u, Item Class: %u\r\n", str, LL_GetRefl(STAGE2), LL_GetMag(STAGE2), LL_GetClass(STAGE2));
-	if(STAGE2) UART_SendString(buffer);
-	if(TAIL) sprintf(buffer, "%s: Item Refl: %u, Item Mag: %u, Item Class: %u\r\n", str, LL_GetRefl(TAIL), LL_GetMag(TAIL), LL_GetClass(TAIL));
-	if(TAIL) UART_SendString(buffer);
+	extern list* HEAD;
+	extern list* STAGE1;
+	extern list* STAGE2;
+	extern list* TAIL;
+	extern list* FRONT;
+	list* temp = FRONT;
+	int c = 0;
+	//while (temp->prev) temp = LL_Prev(temp);
+	
+	while (LL_GetClass(temp) != END_OF_LIST)
+	{
+		char listbuff[50];
+		c++;
+		sprintf(listbuff, "Item: %d, Refl: %u, Mag: %u, Class %u, Status: %u\r\n", c, LL_GetRefl(temp), LL_GetMag(temp), LL_GetClass(temp), LL_GetStatus(temp));
+		UART_SendString(listbuff);
+		temp = LL_Next(temp);	
+	}
 	
 	for(int i = 0; i < 7; i++)
 	{
 		char statebuff[10];
-		sprintf(statebuff, "Timer %d State: %u\r\n", i, _timer[i].state);
+		sprintf(statebuff, "FROM: %s\r\nTimer %d State: %u\r\n",str, i, _timer[i].state);
 		UART_SendString(statebuff);
 	}
+	char anotherbuff[50];
+	sprintf(anotherbuff,"%u\r\nHEAD: %x, TAIL: %x, FRONT: %x, END: %x, STAGE1: %x, Mag: %u STAGE2: %x, Refl: %u\r\n", LL_Size(HEAD), HEAD, TAIL, FRONT, TAIL->next, STAGE1, LL_GetMag(STAGE1), STAGE2, LL_GetRefl(STAGE2));
+	UART_SendString(anotherbuff);
 	while(1)
 	{
 		if((PIND & 0x03) == 0x00) // Both Buttons

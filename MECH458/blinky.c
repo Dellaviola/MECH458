@@ -23,6 +23,11 @@
 #include "sys.h"
 #include "linkedlist.h"
 
+extern list* HEAD;
+extern list* STAGE1;
+extern list* STAGE2;
+extern list* TAIL;
+extern list* FRONT;
 
 void D_Blinky(void *arg)
 {
@@ -35,21 +40,20 @@ void D_Blinky(void *arg)
 
 void C_Blinky(void *arg)
 {
-	//flashing the top 4 leds of the led bank
+	// flashing the led bank
 	(void) arg;
 	PORTC ^= 0xFF;
 }
 void C_Shifty(void *arg)
 {
-	//flashing the top 4 leds of the led bank
+	// shifting the led bank left
 	(void) arg;
 	PORTC = (PORTC == 0xFF ? 0x01 : (++PORTC));
 }
 void C_Picky(void *arg)
 {
-	//flashing the top 4 leds of the led bank
-	(uint8_t) arg;
-	PORTC = arg;
+	// flashing the input leds
+	PORTC = (uint8_t) arg;
 }
 void Do_Nothing(void *arg)
 {
@@ -70,13 +74,19 @@ void ADC_Task(void* arg)
 	 */
 		
 	//PORTC = 0x02;
+	//PORTC ^= 0xFF;
 	size_t i;
 	uint32_t total = 0;
+	char buff[50];
+	static int j = 0;
+	j++;
 	
 	for(i = 0; i < 10; i++)
 	{
 		ATOMIC_BLOCK(ATOMIC_RESTORESTATE){
 			total += g_ADCResult[i];
+// 			sprintf(buff, "Total: %u, i: %u, ADC: %u\r\n",total,i,g_ADCResult[i]);
+// 			UART_SendString(buff);
 		}
 	}
 	ATOMIC_BLOCK(ATOMIC_RESTORESTATE){
@@ -84,7 +94,7 @@ void ADC_Task(void* arg)
 	}
 	
 	ATOMIC_BLOCK(ATOMIC_RESTORESTATE){
-		if((total > 0) && (total < 2000) && (total < LL_GetRefl(STAGE2)) && ((PINE & 0x40) == 0x40))
+		if((total > 0) && (total < 2000) && (total < LL_GetRefl(STAGE2)))
 		{
 			if (STAGE2) LL_UpdateRefl(STAGE2, total);
 		}
@@ -92,7 +102,13 @@ void ADC_Task(void* arg)
 	
 	g_ADCCount = 0;
 	_timer[1].state = BLOCKED;
-	ADCSRA |= (1 << ADSC);
+	if((PINE & 0x40) == 0x40) ADCSRA |= (1 << ADSC);
+	else
+	{
+		char bf[5];
+		sprintf(bf, "Runs: %d/r/n", j);
+		UART_SendString(bf);
+	}
 }
 void MAG_Task(void* arg)
 {
@@ -103,27 +119,34 @@ void MAG_Task(void* arg)
 	 */
 	
 	//PORTC = 0x04;
-	static uint8_t count = 0;
+	//static uint8_t count = 0;
 	static uint16_t tick = 0;
 	if (gMotorOn) tick++;
+	char buff[2];
 	if((PINE & 0x10) == 0)
 	{
-		count++;
-		if (count > 2)
-		{
-			LL_UpdateMag(STAGE1, 1);
-			STAGE1 = LL_Next(STAGE1);
-			_timer[2].state = BLOCKED;
-			tick = 0;
-		}
+		LL_UpdateStatus(STAGE1, INITIALIZED);
+		LL_UpdateMag(STAGE1, 1);
+		STAGE1 = LL_Next(STAGE1);
+		_timer[2].state = BLOCKED;
+// 		sprintf(buff,"%u" ,tick);
+// 		SYS_Pause(buff);
+		//count = 0;
+		tick = 0;
 	}
-	else if (tick > 5)
-	{
+	else if(tick > 30)
+	{	
+		LL_UpdateStatus(STAGE1, INITIALIZED);
 		LL_UpdateMag(STAGE1, 0);
 		STAGE1 = LL_Next(STAGE1);
 		_timer[2].state = BLOCKED;
+		//SYS_Pause(__FUNCTION__);
+//  		sprintf(buff,"%u" ,temp);
+//  		SYS_Pause(buff);
 		tick = 0;
+		//count = 0;
 	}
+	
 	
 	//SYS_Pause(__FUNCTION__);
 }
@@ -136,7 +159,7 @@ void EXIT_Task(void* arg)
 	//PORTC = 0x08;
 	if(stepper.current == LL_GetClass(HEAD))
 	{
-		if(!gMotorOn) PWM(0x80);
+		//if(!gMotorOn) PWM(0x80);
 		LL_UpdateStatus(HEAD, EXPIRED);
 		HEAD = LL_Next(HEAD);
 		STEPPER_SetRotation(LL_GetClass(HEAD), LL_GetClass(HEAD->next));
@@ -144,7 +167,7 @@ void EXIT_Task(void* arg)
 	}
 	else
 	{
-		PWM(0);
+		//PWM(0);
 	}
 	if(LL_GetClass(HEAD) == END_OF_LIST); // rampdown
 	
@@ -207,13 +230,15 @@ void ADD_Task(void* arg)
 	 *	
 	 */
 	//PORTC = 0x10;
-	
-	if (STAGE1 == NULL) STAGE1 = HEAD;
-	LL_UpdateStatus(STAGE1, INITIALIZED);
+// 	if ((PINE & 0x08) == 0)
+// 	{
+// 		if (STAGE1 != NULL) STAGE1 = LL_Next(STAGE1);
+// 		if (STAGE1 == NULL) STAGE1 = HEAD;
+// 		LL_UpdateStatus(STAGE1, INITIALIZED);
+// 		_timer[4].state = BLOCKED;
+// 	}
 
-	_timer[4].state = BLOCKED;
-	_timer[2].state = READY;
-
+	//_timer[2].state = READY;
 
 	
 	//SYS_Pause(__FUNCTION__);	
@@ -231,16 +256,19 @@ void SERVER_Task(void* arg)
 	 */
 	//PORTC = 0x01;
 	static uint8_t pin7state = 1;
-	static uint8_t pin6state = 0;
+	static uint8_t pin6state = 1;
 	static uint8_t pin5state = 1;
+//	static uint8_t temp = 0;
 	
 	if((PINE & 0x80) == 0) // E7
 	{
 		if(pin7state)
 		{
-			// Transition Detected O1 High -> Low : Item Enters
-			_timer[4].state = READY;
-		} 
+			// Transition Detected O1 High -> Low : Item Enters		
+			// Just signal the start of the system by placing the first node into stage 1
+			if(STAGE1 == NULL) STAGE1 = HEAD;
+
+		}
 		pin7state = 0;
 	}
 	
@@ -249,7 +277,11 @@ void SERVER_Task(void* arg)
 		if(pin6state)
 		{
 			// Transition Detected O2 High -> Low : Stop ADC
-			ADCSRA &= (0 << ADEN);
+				// The ADC is started on the Low -> High edge
+				// Once the ADC finishes ten conversions it enables the ADC handling task
+				// The ADC handling task restarts conversions as long as this pin is high
+				// If the pin goes High -> Low, the ADC task will finish and wont restart the ADC
+				// So nothing happens here.
 		}
 		pin6state = 0;
 	}
@@ -260,6 +292,7 @@ void SERVER_Task(void* arg)
 		{
 			// Transition Detected O3 High -> Low : Item At End
 			_timer[3].state = READY;
+			SYS_Pause(__FUNCTION__);
 		}
 		pin5state = 0;
 	}
@@ -269,7 +302,9 @@ void SERVER_Task(void* arg)
 		if(!pin7state)
 		{
 			// Transition Detected O2 Low -> High : Item Exits O1
-
+			// Unblock the magnetic sensor when the item leaves O1
+			// The magnetic sensor blocks once the magnetism of the piece is inferred
+			_timer[2].state = READY;	
 		}
 		pin7state = 1;
 	}
@@ -279,8 +314,14 @@ void SERVER_Task(void* arg)
 		if(!pin6state)
 		{
 			// Transition Detected O1 Low -> High : Item enters ADC
-			STAGE2 = LL_Next(STAGE2);
-			//ADCSRA |= (1 << ADEN);
+			if(STAGE2 == NULL)
+			{
+				STAGE2 = HEAD; // First Item enters stage 2
+			}
+			else
+			{
+				STAGE2 = LL_Next(STAGE2); // Increment stage 2
+			}
 			ADCSRA |= (1 << ADSC);
 		}
 		pin6state = 1;			

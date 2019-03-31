@@ -40,15 +40,15 @@ void ADC_Init()
 
 ISR(ADC_vect)
 {
-		PORTC ^= 0xFE;
+		//PORTC ^= 0xFE;
 		if (g_ADCCount < 10)
 		{
 			 g_ADCResult[g_ADCCount++] = ADC;
-			 ADCSRA |= (1 << ADSC);
-			 
+			 ADCSRA |= (1 << ADSC);	 
 		}
 		if (g_ADCCount == 10) _timer[1].state = READY;
-		PORTC ^= 0xFE;
+		//ADCSRA &= 0x01111111;
+		//PORTC ^= 0xFE;
 }
 
 // Function for polling ADC

@@ -19,33 +19,40 @@ void EXECACQ()
 			break;
 		}
 	}
+	
+	// 1 period = 444 us
+	// item appears on optical for about 64 ms (140 periods)
 
 	ATOMIC_BLOCK(ATOMIC_FORCEON)
-	{
+	{	
 		TIMER_Create(1, 1, SERVER_Task, NULL);		// Placeholder -- Calibration
-		_timer[0].state = READY;
+		SERVER_TMR.state = READY;
 	
 		TIMER_Create(1, 1, ADC_Task, NULL);		// ADC Handler
-		_timer[1].state = READY;
+		ADC_TMR.state = BLOCKED;
 	
 		TIMER_Create(1, 1, MAG_Task, NULL);		// Magnetic Sensor Polling
-		_timer[2].state = READY;
+		MAG_TMR.state = BLOCKED;
 	
 		TIMER_Create(1, 1, EXIT_Task, NULL);		// Item Exit Handling
-		_timer[3].state = READY;
+		EXIT_TMR.state = BLOCKED;
 	
 		TIMER_Create(1, 1, ADD_Task, NULL);		// Item Enter Handling
-		_timer[4].state = READY;
+		ADD_TMR.state = BLOCKED;
 	
-		TIMER_Create(1, 1, BTN_Task, NULL);		// Button Handling
-		_timer[5].state = READY;
+		TIMER_Create(50, 1, BTN_Task, NULL);		// Button Handling
+		BTN_TMR.state = READY;
 	
 		TIMER_Create(1000, 1, D_Blinky, NULL);	// Event Handling
-		_timer[6].state = READY;
+		BLINKY_TMR.state = READY;				//_timer[6]
 	
 		//UART_SendString("System Ready...\r\n");
 		PWM(0x80);
-		PORTC = 0xFE;
+ 		PORTC = 0xFE;
+// 		g_ADCCount = 0;
+// 		ADCSRA |= (1 << ADEN);
+//		ADCSRA |= (1 << ADSC);
+// 		PORTC ^= 0xFF;
 	};
 	
 	//for(int g = 0; g < 10; g++) g_ADCResult[g] = 100;
@@ -55,6 +62,7 @@ void EXECACQ()
 // 	ADCSRA = (1 << ADEN);
 // 	ADCSRA = (1 << ADSC);
 	// Put IDLE operations in infinite loop
+	cli();
 	while (1)
 	{
 		//
@@ -113,7 +121,25 @@ void EXECACQ()
 			
 			// About 374us to service entire system with timer, stepper, adc.
 			
-			STEPPER_SetRotation(50,150);
+			// SUMMARY:
+				// Frame Size : 444 us
+				// Max Utilization: ~374 us
+			//PORTC = 0xFF;
+// 			if (g_ADCCount == 10)
+// 			{
+// 				PORTC ^= 0xFF;
+// 				g_ADCCount = 0;
+// 				ADCSRA |= (1 << ADEN);
+// 				ADCSRA |= (1 << ADSC);
+// 				
+// 			}
+// 			if((PINE & 0x10) != 0x10){
+// 				PORTC = 0xFF;
+// 				 SYS_Pause(__FUNCTION__);
+// 			}
+			//PORTC = 0xFF;
+			
+			
 			//PORTC ^= 0xFE;
 	}
 	return ;
