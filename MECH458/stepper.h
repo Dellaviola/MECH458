@@ -4,13 +4,16 @@
 #ifndef STEPPER_H_
 #define STEPPER_H_
 
-#include <stdlib.h>        // the header of the general purpose standard library of C programming language
+/* Standard Includes */
+#include <stdlib.h>        
 #include <stdint.h>
-#include <stdio.h>
-#include <avr/io.h>        // the header of i/o port
-#include <util/atomic.h>    // atomic blocks to handle blocking tasks
-#include <avr/wdt.h>        // watchdog macros reset MCU on hangs.
-#include <avr/interrupt.h> // Delay functions for AT90USBKey
+
+/* AVR Includes */
+#include <avr/io.h>      
+#include <util/atomic.h>    
+#include <avr/interrupt.h> 
+
+/* Program Includes */
 #include "config.h"
 
 typedef struct stepper_param
@@ -22,9 +25,10 @@ typedef struct stepper_param
 	uint8_t _targetStep;
 	uint8_t _currentStep;
 	uint8_t next;
-	uint8_t _delay;
 	uint8_t _willContinue;
-}stepperParam;
+	uint8_t _isInitiated;
+	uint8_t _accellStep;
+} stepperParam;
 
 stepperParam stepper;
 
@@ -33,5 +37,4 @@ uint16_t STEPPER_NumSteps(uint8_t, uint8_t);
 void STEPPER_Rotate(void);
 void STEPPER_SetRotation(uint8_t, uint8_t);
 
-
-#endif
+#endif // STEPPER_H_
