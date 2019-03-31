@@ -20,7 +20,6 @@
 #include "config.h"
 #include "blinky.h"
 #include "adc.h"
-#include "delay.h"
 #include "stepper.h"
 #include "pwm.h"
 #include "gpio.h"

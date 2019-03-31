@@ -20,7 +20,6 @@
 #include "config.h"
 #include "blinky.h"
 #include "adc.h"
-#include "delay.h"
 #include "stepper.h"
 #include "pwm.h"
 #include "gpio.h"
@@ -140,7 +139,7 @@ return 0;
 				//classify temp
 				ATOMIC_BLOCK(ATOMIC_RESTORESTATE)
 				{
-					uint16_t reflVal = LL_GetRefl(temp);				
+					reflVal = LL_GetRefl(temp);				
 				}
 				uint8_t magVal = LL_GetMag(temp);
 				
