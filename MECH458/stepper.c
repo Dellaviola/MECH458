@@ -10,42 +10,42 @@
 //# REVISED 11-02-2019
 //########################################################################
 
-#include <stdlib.h> // the header of the general purpose standard library of C programming language
-#include <stdint.h>
-#include <avr/io.h>		   // the header of i/o port
-#include <util/atomic.h>   // atomic blocks to handle blocking tasks
-#include <avr/wdt.h>	   // watchdog macros reset MCU on hangs.
-#include <avr/interrupt.h> // Delay functions for AT90USBKey
+/* Header */
 #include "stepper.h"
 
 #define TURN_180 100
 #define CW 0x04
 #define CCW 0x08
 
-//TODO; Write spin down
+volatile uint8_t accell[6] = {0x94, 0x7D, 0x66, 0x50, 0x43, 0x40};
 
+//TODO; Write spin down
 
 void STEPPER_Init()
 {
 	stepper._stepNum = 0;
 	stepper.direction = 1;
 	stepper.target = 0;
-	stepper.current = 0;
-	stepper._targetStep = 200;
+	//Rotate 200 Steps to find the hall sensor
+	stepper.current = 200;
+	stepper._targetStep = 0;
 	stepper._currentStep = 0;
 	stepper.next = 0;
-	stepper._delay = 0x14;
+	stepper._isInitiated = 0;
+	stepper._accellStep = 0;
 	PORTA = 0x30;
 	cli();
 	//Initial delay of 20ms
-	OCR2A = 0x90;
+	OCR2A = 0x94;
 	// Set to CTC Mode
 	TCCR2A |= (1 << WGM21);
 	//Set interrupt on compare match
 	TIMSK2 |= (1 << OCIE2A);
 	// set prescaler to 1024 and starts PWM
 	TCCR2B |= ((1 << CS22) | (1 << CS21) | (1 << CS20));
-	
+	// set prescaler to 256 and starts PWM
+	//TCCR2B |= ((1 << CS22) | (1 << CS21));
+
 	sei();
 	// enable interrupts
 }
@@ -70,9 +70,11 @@ void STEPPER_Rotate()
 {
 	//Steps and direction to position
 	stepper._targetStep = STEPPER_NumSteps(stepper.target, stepper.current);
-	//Steps and direction to next pos
+	//Steps and direction to next position
 	int nextSteps = STEPPER_NumSteps(stepper.next, stepper.target);
+	//Determine rotation direction
 	stepper.direction = (stepper._targetStep >= 0) ? CW : CCW;
+	//Determine if the Next target will require a stop or not
 	stepper._willContinue = (stepper._targetStep * nextSteps >= 0) ? 1 : 0;
 
 	//stepper can not take -ve numbers of steps
@@ -83,21 +85,34 @@ void STEPPER_Rotate()
 void STEPPER_SetRotation(uint8_t target, uint8_t next)
 {
 	cli();
-	//Use this to set the target positions
+	//Use this function to set the target positions
 	stepper.target = target;
 	stepper.next = next;
 	STEPPER_Rotate();
-	OCR2A = 0x07 * stepper._delay;
+	OCR2A = accell[stepper._accellStep];
 	sei();
 }
 
-//TODO: double up steps and decrease timer scaling for higher accuracy
-
 ISR(TIMER2_COMPA_vect)
 {
-// 	PORTC ^= 0xFE;
-// 	PORTC |= 0x01;  
 	volatile uint8_t step[4] = {0x36, 0x2E, 0x2D, 0x35};
+
+	if (stepper._isInitiated == 0)
+	{
+		if ((PINE && 0x04) == 0)
+		{
+			//Reset the values when the hall sensor fires for the first time
+			stepper._isInitiated = 1;
+			stepper._stepNum = 0;
+			stepper.direction = 1;
+			stepper.target = 0;
+			stepper.current = 0;
+			stepper._targetStep = 0;
+			stepper._currentStep = 0;
+			stepper.next = 0;
+		}
+	}
+
 	if (stepper._currentStep < stepper._targetStep)
 	{
 		//if your not at the target fire the motor
@@ -106,26 +121,25 @@ ISR(TIMER2_COMPA_vect)
 
 		stepper._currentStep++;
 
-		//Simple accel / decel block
-		if ((stepper._currentStep > 5) && (stepper._delay > 6)){
-			stepper._delay--;
-			OCR2A = 0x07 * stepper._delay;
+		//Simple acceleration / deceleration block uses crve defined in accel
+		if (((stepper._targetStep - stepper._currentStep) <= 5) && (accell[stepper._accellStep] < 0x94))
+		{
+			stepper._accellStep--;
 		}
-		if (((stepper._targetStep - stepper._currentStep) <= 5) && (stepper._delay < 0x13)){
-			stepper._delay++;
-			OCR2A = 0x07 * stepper._delay;
+		else if ((stepper._currentStep > 5) && (accell[stepper._accellStep] > 0x40))
+		{
+			stepper._accellStep++;
 		}
-		
+		OCR2A = accell[stepper._accellStep];
 	}
+
 	else if (stepper._currentStep == stepper._targetStep)
 	{
 		//if you are at the target, don't rotate any farther and adjust the current position
 		stepper.current = stepper.target;
 		//if the direction is changing reset the delay
-		stepper._delay = (stepper._willContinue) ? stepper._delay : 20;
-		OCR2A = 0x07 * stepper._delay;
+		stepper._accellStep = (stepper._willContinue) ? stepper._accellStep : 0;
+		OCR2A = accell[stepper._accellStep];
 		PORTA = (stepper._willContinue) ? PORTA : 0x00;
 	}
-	//PORTC &= 0xFE;
-	//PORTC ^= 0xFF;
 }
