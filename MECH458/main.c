@@ -32,7 +32,20 @@
 #define LISTUNITTEST 0
 #define TIMERUNITTEST 0
 #define EXECMODE 0
+#define CALIBMODE 0
 
+// Configure boundaries
+const uint16_t BLACK_BOUNDARY_HIGH = 931;
+const uint16_t BLACK_BOUNDARY_LOW = 886;
+
+const uint16_t WHITE_BOUNDARY_HIGH = 874;
+const uint16_t WHITE_BOUNDARY_LOW = 827;
+
+const uint16_t STEEL_BOUNDARY_HIGH = 524;
+const uint16_t STEEL_BOUNDARY_LOW = 299;
+
+const uint16_t ALUMINUM_BOUNDARY_HIGH = 76;
+const uint16_t ALUMINUM_BOUNDARY_LOW = 35;
 
 extern list* HEAD;
 extern list* STAGE1;
@@ -64,6 +77,11 @@ int main(void)
 	#include "EXECACQ.h"
 	EXECACQ();
 	return 0;
+#endif
+#if CALIBMODE == 1
+#include "CALIBRATE.h"
+CALIBRATE();
+return 0;
 #endif
 	
 	SYS_Init();
@@ -98,7 +116,10 @@ int main(void)
 		_timer[5].state = READY;
 		
 		TIMER_Create(1000, 1, D_Blinky, NULL);	// Event Handling
-		_timer[6].state = READY;				//_timer[6]
+		_timer[6].state = READY;				
+		
+		TIMER_Create(4505,1, WATCHDOG_Task, NULL); // Software watchdog (2 seconds)
+		_timer[7].state = BLOCKED;
 
 		UART_SendString("System Ready...\r\n");
 		PWM(0x80);
@@ -106,49 +127,54 @@ int main(void)
 	// Put IDLE operations in infinite loop
 	while (1)
 	{		
-// 		if (g_IdleStartTime == 0)
-// 		{
-// 			g_IdleStartTime = TCNT1;
-// 			char str[20];
-// 			sprintf(str, "Processor Use = %u\r\n", (g_IdleStartTime - g_SchedulerStartTime));
-// 			UART_SendString(str);
-// 		}
-		
-// 		list* temp = HEAD;
-// 		while(temp){
-// 			if(temp && (LL_GetClass(temp) == UNCLASSIFIED) && (LL_GetStatus(temp) == INITIALIZED) && (LL_GetClass(temp) != END_OF_LIST))
-// 			{
-// 				//classify temp
-// 				uint16_t reflVal = LL_GetRefl(temp);
-// 				uint8_t magVal = LL_GetMag(temp);
-// 				
-// 				if(magVal)
-// 				{
-// 					if(reflVal < 150)
-// 					{
-// 						LL_UpdateClass(temp, ALUMINUM);
-// 					}
-// 					else
-// 					{
-// 						LL_UpdateClass(temp, STEEL);
-// 					}
-// 				}
-// 				else if(reflVal < 800)
-// 				{
-// 					LL_UpdateClass(temp, BLACK);
-// 				}
-// 				else
-// 				{
-// 					LL_UpdateClass(temp, WHITE);
-// 				}
-// 			}
-// 			temp = LL_Next(temp);
-// 		}
+		// Check for a pause request
+		// Only pause during idle time to properly restart the scheduler on unpause
+		if(g_PauseRequest) SYS_Pause(__FUNCTION__);
+				
+		list* temp = HEAD;
+		uint16_t reflVal; 
 
-// 	if ((PINE & 0x01) != 0x01) SYS_Pause(__FUNCTION__);
-// 
+		while(temp){
+			if(temp && (LL_GetClass(temp) == UNCLASSIFIED) && (LL_GetStatus(temp) == SORTABLE))
+			{
+				//classify temp
+				ATOMIC_BLOCK(ATOMIC_RESTORESTATE)
+				{
+					uint16_t reflVal = LL_GetRefl(temp);				
+				}
+				uint8_t magVal = LL_GetMag(temp);
+				
+				if(magVal) // 
+				{
+					if((reflVal >= ALUMINUM_BOUNDARY_LOW) && (reflVal <= ALUMINUM_BOUNDARY_HIGH))
+					{
+						LL_UpdateClass(temp, ALUMINUM);
+					}
+					else if ((reflVal >= STEEL_BOUNDARY_LOW) && (reflVal <= STEEL_BOUNDARY_HIGH))
+					{
+						LL_UpdateClass(temp, STEEL);
+					}
+					else
+					{
+						// Unknown Magnetic Object
+					}
+				}
+				else if((reflVal >= BLACK_BOUNDARY_LOW) && (reflVal <= BLACK_BOUNDARY_HIGH))
+				{
+					LL_UpdateClass(temp, BLACK);
+				}
+				else if((reflVal >= WHITE_BOUNDARY_LOW) && (reflVal <= WHITE_BOUNDARY_HIGH))
+				{
+					LL_UpdateClass(temp, WHITE);
+				}
+				else
+				{
+					// Unknown non-magnetic object
+				}
+			}
+			temp = LL_Next(temp);
+		}
   	}
-	
 	return 0;
 }
 

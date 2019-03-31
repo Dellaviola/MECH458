@@ -33,6 +33,7 @@ void EXIT_Task(void *);
 void IDLE_Task(void*);
 void SERVER_Task(void*);
 void STEPPER_Task(void*);
+void WATCHDOG_Task(void*);
 void ADD_Task(void*);
 void BTN_Task(void*);
 

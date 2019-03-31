@@ -22,12 +22,7 @@ void SYS_Init()
 	TIMER_Init();
 	PWM_Init();
 	ADC_Init();
-	STEPPER_Init();
-	
-	stepper_handle = -1;
-	timer_handle = -1;
-	delay_flag = -1;
-	
+	STEPPER_Init();	
 	g_ADCCount = 0;
 	memset(g_ADCResult, 0, sizeof(g_ADCResult));
 	g_ADCFlag = 0;
@@ -54,15 +49,16 @@ void SYS_Init()
 		initNode = LL_ItemInit(65000 - i,250 - i, UNCLASSIFIED, UNINITIALIZED);
 		TAIL = LL_AddBack(HEAD, initNode);
 	}
+	for(int j = 0; j < 5; j++)
+	{
+		initNode = LL_ItemInit(65000,250, END_OF_LIST, UNINITIALIZED);
+		LL_AddBack(HEAD,initNode);
+	}
 	
-	initNode = LL_ItemInit(65000,250, END_OF_LIST, UNINITIALIZED);
-	LL_AddBack(HEAD,initNode);
-	
-	//PORTC = LL_Size(HEAD);
 	char temp[50];
 	sprintf(temp,"%u\r\nHEAD: %x, TAIL: %x, FRONT: %x, END: %x\r\n", LL_Size(HEAD), HEAD, TAIL, FRONT, TAIL->next);
 	UART_SendString(temp);
-	//sei();
+	
 
 }
 
@@ -78,7 +74,8 @@ void SYS_Pause(char str[20])
 	extern list* FRONT;
 	list* temp = FRONT;
 	int c = 0;
-	//while (temp->prev) temp = LL_Prev(temp);
+	
+	sprintf(buffer,"System Pause Message: %s\r\n", str);
 	
 	while (LL_GetClass(temp) != END_OF_LIST)
 	{
@@ -92,7 +89,7 @@ void SYS_Pause(char str[20])
 	for(int i = 0; i < 7; i++)
 	{
 		char statebuff[10];
-		sprintf(statebuff, "FROM: %s\r\nTimer %d State: %u\r\n",str, i, _timer[i].state);
+		sprintf(statebuff, "Timer %d State: %u\r\n", i, _timer[i].state);
 		UART_SendString(statebuff);
 	}
 	char anotherbuff[50];
@@ -104,6 +101,43 @@ void SYS_Pause(char str[20])
 		{
 			UART_SendString("Starting System!\r\n");
 			PWM(0x80);
+			sei();
+			break;
+		}
+	}
+	return;
+}
+
+void SYS_Calibrate()
+{
+	//
+	cli();
+	PWM(0);
+	//char buffer[100];
+	extern list* HEAD;
+	extern list* STAGE1;
+	extern list* STAGE2;
+	extern list* TAIL;
+	extern list* FRONT;
+	list* temp = FRONT;
+	int c = 0;
+	//while (temp->prev) temp = LL_Prev(temp);
+	
+	while (LL_GetStatus(temp) != UNINITIALIZED)
+	{
+		char listbuff[50];
+		c++;
+		sprintf(listbuff, "Item: %d, Refl: %u, Mag: %u, Class %u, Status: %u\r\n", c, LL_GetRefl(temp), LL_GetMag(temp), LL_GetClass(temp), LL_GetStatus(temp));
+		UART_SendString(listbuff);
+		temp = LL_Next(temp);
+	}
+	while(1)
+	{
+		if((PIND & 0x03) == 0x00) // Both Buttons
+		{
+			UART_SendString("Starting System!\r\n");
+			PWM(0x80);
+			g_PauseRequest = 0;
 			sei();
 			break;
 		}

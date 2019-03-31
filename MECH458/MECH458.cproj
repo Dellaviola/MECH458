@@ -248,6 +248,12 @@
     <Compile Include="blinky.h">
       <SubType>compile</SubType>
     </Compile>
+    <Compile Include="CALIBRATE.c">
+      <SubType>compile</SubType>
+    </Compile>
+    <Compile Include="CALIBRATE.h">
+      <SubType>compile</SubType>
+    </Compile>
     <Compile Include="DATAACQ.c">
       <SubType>compile</SubType>
     </Compile>

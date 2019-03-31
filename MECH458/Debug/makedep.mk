@@ -6,6 +6,8 @@ adc.c
 
 blinky.c
 
+CALIBRATE.c
+
 DATAACQ.c
 
 EXECACQ.c

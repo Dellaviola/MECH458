@@ -77,7 +77,7 @@ void ADC_Task(void* arg)
 	//PORTC ^= 0xFF;
 	size_t i;
 	uint32_t total = 0;
-	char buff[50];
+	//char buff[50];
 	static int j = 0;
 	j++;
 	
@@ -105,9 +105,9 @@ void ADC_Task(void* arg)
 	if((PINE & 0x40) == 0x40) ADCSRA |= (1 << ADSC);
 	else
 	{
-		char bf[5];
-		sprintf(bf, "Runs: %d/r/n", j);
-		UART_SendString(bf);
+// 		char bf[5];
+// 		sprintf(bf, "Runs: %d/r/n", j);
+// 		UART_SendString(bf);
 	}
 }
 void MAG_Task(void* arg)
@@ -122,7 +122,7 @@ void MAG_Task(void* arg)
 	//static uint8_t count = 0;
 	static uint16_t tick = 0;
 	if (gMotorOn) tick++;
-	char buff[2];
+	//char buff[2];
 	if((PINE & 0x10) == 0)
 	{
 		LL_UpdateStatus(STAGE1, INITIALIZED);
@@ -266,8 +266,11 @@ void SERVER_Task(void* arg)
 		{
 			// Transition Detected O1 High -> Low : Item Enters		
 			// Just signal the start of the system by placing the first node into stage 1
+			// And enable the watchdog timer
+			
 			if(STAGE1 == NULL) STAGE1 = HEAD;
-
+			_timer[7].state = READY;
+			g_WDTimeout = 0;
 		}
 		pin7state = 0;
 	}
@@ -282,6 +285,7 @@ void SERVER_Task(void* arg)
 				// The ADC handling task restarts conversions as long as this pin is high
 				// If the pin goes High -> Low, the ADC task will finish and wont restart the ADC
 				// So nothing happens here.
+				g_WDTimeout = 0;
 		}
 		pin6state = 0;
 	}
@@ -292,7 +296,8 @@ void SERVER_Task(void* arg)
 		{
 			// Transition Detected O3 High -> Low : Item At End
 			_timer[3].state = READY;
-			SYS_Pause(__FUNCTION__);
+			g_PauseRequest = 1;
+			g_WDTimeout = 0;
 		}
 		pin5state = 0;
 	}
@@ -305,6 +310,7 @@ void SERVER_Task(void* arg)
 			// Unblock the magnetic sensor when the item leaves O1
 			// The magnetic sensor blocks once the magnetism of the piece is inferred
 			_timer[2].state = READY;	
+			g_WDTimeout = 0;
 		}
 		pin7state = 1;
 	}
@@ -320,8 +326,10 @@ void SERVER_Task(void* arg)
 			}
 			else
 			{
+				LL_UpdateStatus(STAGE2, SORTABLE);
 				STAGE2 = LL_Next(STAGE2); // Increment stage 2
 			}
+			g_WDTimeout = 0;
 			ADCSRA |= (1 << ADSC);
 		}
 		pin6state = 1;			
@@ -332,9 +340,17 @@ void SERVER_Task(void* arg)
 		if(!pin5state)
 		{
 			// Transition Detected O3 Low -> High : Item Exits System
+			g_WDTimeout = 0;
 		}
 		pin5state = 1;			
 	}
+}
+
+void WATCHDOG_Task(void* arg)
+{
+	// If this function runs twice then then no item has triggered an optical sensor for 4 seconds.
+	if(g_WDTimeout) SYS_Pause(__FUNCTION__); 
+	g_WDTimeout++;
 }
 
 //ISR(INT7_vect)

@@ -1,13 +1,14 @@
 /*
- * sys.h
+ * CALIBRATE.h
  *
- * Created: 2019-03-27 12:53:32 PM
+ * Created: 2019-03-31 11:56:30 AM
  *  Author: Mario
  */ 
 
 
-#ifndef SYS_H_
-#define SYS_H_
+#ifndef CALIBRATE_H_
+#define CALIBRATE_H_
+
 
 #include <stdlib.h>        // the header of the general purpose standard library of C programming language
 #include <stdint.h>
@@ -25,11 +26,11 @@
 #include "gpio.h"
 #include "uart.h"
 #include "string.h"
+#include "sys.h"
 
-void SYS_Init(void);
+void CALIBRATE(void);
 
-void SYS_Pause(char[20]);
 
-void SYS_Calibrate(void);
 
-#endif /* SYS_H_ */
+
+#endif /* CALIBRATE_H_ */

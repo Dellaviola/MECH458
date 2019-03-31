@@ -61,6 +61,7 @@ SUBDIRS :=  \
 C_SRCS +=  \
 ../adc.c \
 ../blinky.c \
+../CALIBRATE.c \
 ../DATAACQ.c \
 ../EXECACQ.c \
 ../linkedlist.c \
@@ -86,6 +87,7 @@ ASM_SRCS +=
 OBJS +=  \
 adc.o \
 blinky.o \
+CALIBRATE.o \
 DATAACQ.o \
 EXECACQ.o \
 linkedlist.o \
@@ -104,6 +106,7 @@ src/ASF/common/boards/user_board/init.o
 OBJS_AS_ARGS +=  \
 adc.o \
 blinky.o \
+CALIBRATE.o \
 DATAACQ.o \
 EXECACQ.o \
 linkedlist.o \
@@ -122,6 +125,7 @@ src/ASF/common/boards/user_board/init.o
 C_DEPS +=  \
 adc.d \
 blinky.d \
+CALIBRATE.d \
 DATAACQ.d \
 EXECACQ.d \
 linkedlist.d \
@@ -140,6 +144,7 @@ src/ASF/common/boards/user_board/init.d
 C_DEPS_AS_ARGS +=  \
 adc.d \
 blinky.d \
+CALIBRATE.d \
 DATAACQ.d \
 EXECACQ.d \
 linkedlist.d \
@@ -177,6 +182,13 @@ LINKER_SCRIPT_DEP+=
 	
 
 ./blinky.o: .././blinky.c
+	@echo Building file: $<
+	@echo Invoking: AVR/GNU C Compiler : 5.4.0
+	$(QUOTE)C:\Program Files (x86)\Atmel\Studio\7.0\toolchain\avr8\avr8-gnu-toolchain\bin\avr-gcc.exe$(QUOTE)  -x c -DDEBUG -DBOARD=USER_BOARD  -I"C:\Program Files (x86)\Atmel\Studio\7.0\Packs\atmel\ATmega_DFP\1.2.209\include" -I"../src/ASF/common/boards/user_board" -I"../src/ASF/common/boards" -I"../src/ASF/mega/utils/preprocessor" -I"../src/ASF/mega/utils" -I"../src/ASF/common/utils" -I"../src" -I"../src/config" -I"../src/ASF/mega/drivers/cpu" -I"../src/ASF/common/services/clock" -I"../src/ASF/common/services/gpio" -I"../src/ASF/common/services/ioport"  -O1 -fdata-sections -ffunction-sections -fdata-sections -fpack-struct -fshort-enums -mrelax -g3 -Wall -mmcu=at90usb1287 -B "C:\Program Files (x86)\Atmel\Studio\7.0\Packs\atmel\ATmega_DFP\1.2.209\gcc\dev\at90usb1287" -c -std=gnu99 -fno-strict-aliasing -Wstrict-prototypes -Wmissing-prototypes -Werror-implicit-function-declaration -Wpointer-arith -mrelax -MD -MP -MF "$(@:%.o=%.d)" -MT"$(@:%.o=%.d)" -MT"$(@:%.o=%.o)"   -o "$@" "$<" 
+	@echo Finished building: $<
+	
+
+./CALIBRATE.o: .././CALIBRATE.c
 	@echo Building file: $<
 	@echo Invoking: AVR/GNU C Compiler : 5.4.0
 	$(QUOTE)C:\Program Files (x86)\Atmel\Studio\7.0\toolchain\avr8\avr8-gnu-toolchain\bin\avr-gcc.exe$(QUOTE)  -x c -DDEBUG -DBOARD=USER_BOARD  -I"C:\Program Files (x86)\Atmel\Studio\7.0\Packs\atmel\ATmega_DFP\1.2.209\include" -I"../src/ASF/common/boards/user_board" -I"../src/ASF/common/boards" -I"../src/ASF/mega/utils/preprocessor" -I"../src/ASF/mega/utils" -I"../src/ASF/common/utils" -I"../src" -I"../src/config" -I"../src/ASF/mega/drivers/cpu" -I"../src/ASF/common/services/clock" -I"../src/ASF/common/services/gpio" -I"../src/ASF/common/services/ioport"  -O1 -fdata-sections -ffunction-sections -fdata-sections -fpack-struct -fshort-enums -mrelax -g3 -Wall -mmcu=at90usb1287 -B "C:\Program Files (x86)\Atmel\Studio\7.0\Packs\atmel\ATmega_DFP\1.2.209\gcc\dev\at90usb1287" -c -std=gnu99 -fno-strict-aliasing -Wstrict-prototypes -Wmissing-prototypes -Werror-implicit-function-declaration -Wpointer-arith -mrelax -MD -MP -MF "$(@:%.o=%.d)" -MT"$(@:%.o=%.d)" -MT"$(@:%.o=%.o)"   -o "$@" "$<" 

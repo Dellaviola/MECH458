@@ -28,6 +28,7 @@ typedef enum status_e
 {
 	UNINITIALIZED,
 	INITIALIZED,
+	SORTABLE,
 	EXPIRED	
 }estatus;
 
