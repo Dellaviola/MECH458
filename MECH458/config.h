@@ -57,6 +57,7 @@
 	volatile uint16_t g_SchedulerStartTime;
 	volatile uint8_t g_PauseRequest;
 	volatile uint8_t g_WDTimeout;
+	volatile uint8_t g_StepperInitialized;
 	
 /*
         TIMER DEFINES
@@ -92,5 +93,7 @@ volatile uint8_t gSysCalibrated;
 #define DELAY 20
 #define CW 0x04
 #define CCW 0x08
+
+#define PAUSE (g_PauseRequest = 1;)
 
 #endif

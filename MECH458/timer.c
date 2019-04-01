@@ -71,7 +71,7 @@ int TIMER_Init(void)
     OCR1A = 0x0DE0;   // 12C0 == 600us, 960 = 300 us 0x0DE0 444us
     TCCR1A = 0x00;
     TCCR1B = (1<<CS10) | (1<<WGM12);  // Timer mode with no prescaling and CTC mode (reset counter on compare mode)
-    TIMSK1 = (1 << OCIE1A) ;   // Enable timer1 output compare interrupt
+    TIMSK1 = (1 << OCIE1A);			   // Enable timer1 output compare interrupt
 	
 	memset(_timer, 0, sizeof(_timer));
 

@@ -6,23 +6,21 @@
  */ 
 
 #include "sys.h"
-#include "timer.h"
 
 void SYS_Init()
 {
 	// Initialize system
 	
+		
 	cli();
-	
 	CLKPR = (1<<CLKPCE);
 	CLKPR = 0;
-	
 	UART_Init();
 	GPIO_Init();
-	TIMER_Init();
-	PWM_Init();
 	ADC_Init();
 	STEPPER_Init();	
+	TIMER_Init();
+	PWM_Init();
 	g_ADCCount = 0;
 	memset(g_ADCResult, 0, sizeof(g_ADCResult));
 	g_ADCFlag = 0;
@@ -59,8 +57,6 @@ void SYS_Init()
 	char temp[50];
 	sprintf(temp,"%u\r\nHEAD: %x, TAIL: %x, FRONT: %x, END: %x\r\n", LL_Size(HEAD), HEAD, TAIL, FRONT, TAIL->next);
 	UART_SendString(temp);
-	
-
 }
 
 void SYS_Pause(char str[20])
@@ -103,6 +99,7 @@ void SYS_Pause(char str[20])
 		{
 			UART_SendString("Starting System!\r\n");
 			PWM(0x80);
+			g_PauseRequest = 0;
 			sei();
 			break;
 		}

@@ -40,11 +40,11 @@ const uint16_t BLACK_BOUNDARY_LOW = 886;
 const uint16_t WHITE_BOUNDARY_HIGH = 874;
 const uint16_t WHITE_BOUNDARY_LOW = 827;
 
-const uint16_t STEEL_BOUNDARY_HIGH = 524;
+const uint16_t STEEL_BOUNDARY_HIGH = 650;
 const uint16_t STEEL_BOUNDARY_LOW = 299;
 
-const uint16_t ALUMINUM_BOUNDARY_HIGH = 76;
-const uint16_t ALUMINUM_BOUNDARY_LOW = 35;
+const uint16_t ALUMINUM_BOUNDARY_HIGH = 100;
+const uint16_t ALUMINUM_BOUNDARY_LOW = 20;
 
 extern list* HEAD;
 extern list* STAGE1;
@@ -84,11 +84,10 @@ return 0;
 #endif
 	
 	SYS_Init();
-
 	while(1)
 	{
 		if((PIND & 0x03) == 0x00) // Both Buttons
-		{
+		{	
 			UART_SendString("Starting System!\r\n");
 			break;
 		}
@@ -108,7 +107,7 @@ return 0;
 		TIMER_Create(1, 1, EXIT_Task, NULL);		// Item Exit Handling
 		_timer[3].state = BLOCKED;
 		
-		TIMER_Create(180, 1, ADD_Task, NULL);		// Item Enter Handling
+		TIMER_Create(1, 1, ADD_Task, NULL);		// Item Enter Handling
 		_timer[4].state = BLOCKED;
 		
 		TIMER_Create(50, 1, BTN_Task, NULL);		// Button Handling
@@ -121,20 +120,18 @@ return 0;
 		_timer[7].state = BLOCKED;
 
 		UART_SendString("System Ready...\r\n");
+		
 		PWM(0x80);
 	};
 	// Put IDLE operations in infinite loop
 	while (1)
 	{		
+		//PORTC = PINE;
 		// Check for a pause request
 		// Only pause during idle time to properly restart the scheduler on unpause
 		if(g_PauseRequest) SYS_Pause(__FUNCTION__);
 
 		list* temp = HEAD;
-		
-		LL_UpdateClass(temp, STEEL);
-		temp = LL_Next(temp);
-		LL_UpdateClass(temp, ALUMINUM);
 		uint16_t reflVal; 
 
 		while(temp)
@@ -142,10 +139,8 @@ return 0;
 			if(temp && (LL_GetClass(temp) == UNCLASSIFIED) && (LL_GetStatus(temp) == SORTABLE))
 			{
 				//classify temp
-				ATOMIC_BLOCK(ATOMIC_RESTORESTATE)
-				{
-					reflVal = LL_GetRefl(temp);				
-				}
+				
+				reflVal = LL_GetRefl(temp);				
 				uint8_t magVal = LL_GetMag(temp);
 				
 				if(magVal) // 

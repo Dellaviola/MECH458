@@ -56,7 +56,7 @@ void CALIBRATE()
 		TIMER_Create(1, 1, EXIT_Task, NULL);		// Item Exit Handling
 		_timer[3].state = BLOCKED;
 		
-		TIMER_Create(180, 1, ADD_Task, NULL);		// Item Enter Handling
+		TIMER_Create(1, 1, ADD_Task, NULL);		// Item Enter Handling
 		_timer[4].state = BLOCKED;
 		
 		TIMER_Create(50, 1, BTN_Task, NULL);		// Button Handling

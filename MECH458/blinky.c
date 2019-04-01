@@ -157,17 +157,27 @@ void EXIT_Task(void* arg)
 	 * Processes item status
 	 */
 	//PORTC = 0x08;
-	if(stepper.current == LL_GetClass(HEAD))
+	
+	static volatile uint8_t position[6] = {100, 0, 50, 150, 100, 100};
+	
+	static uint8_t memory = 0;
+	if(stepper.current == position[LL_GetClass(HEAD)])
 	{
-		//if(!gMotorOn) PWM(0x80);
+		if(!gMotorOn) PWM(0x80);
 		LL_UpdateStatus(HEAD, EXPIRED);
 		HEAD = LL_Next(HEAD);
 		STEPPER_SetRotation(LL_GetClass(HEAD), LL_GetClass(HEAD->next));
 		_timer[3].state = BLOCKED;
+		//memory = 0;
 	}
 	else
 	{
-		//PWM(0);
+		PWM(0);
+		if(memory == 0)
+		{
+			STEPPER_SetRotation(LL_GetClass(HEAD), LL_GetClass(HEAD->next));
+			memory = 1;
+		}
 	}
 	if(LL_GetClass(HEAD) == END_OF_LIST); // rampdown
 	
@@ -204,7 +214,7 @@ void BTN_Task(void* arg)
 			else if ((PIND & 0x03) == 0x01) // Button 1 : Pause System
 			{
 				UART_SendString("Button1 Pressed!\r\r\r\rPausing System...");
-				SYS_Pause("Pause Requested");
+				g_PauseRequest = 1;
 				g_IdleStartTime = 0;
 				debounce = 0;
 			} 
@@ -255,7 +265,7 @@ void SERVER_Task(void* arg)
 	 * samples inputs at 2.25khz
 	 */
 	//PORTC = 0x01;
-	static uint8_t pin7state = 0;
+	static uint8_t pin7state = 1;
 	static uint8_t pin6state = 1;
 	static uint8_t pin5state = 1;
 //	static uint8_t temp = 0;
@@ -269,7 +279,6 @@ void SERVER_Task(void* arg)
 			// And enable the watchdog timer
 			
 			if(STAGE1 == NULL) STAGE1 = HEAD;
-			_timer[7].state = READY;
 			g_WDTimeout = 0;
 		}
 		pin7state = 0;
@@ -280,11 +289,9 @@ void SERVER_Task(void* arg)
 		if(pin6state)
 		{
 			// Transition Detected O2 High -> Low : Stop ADC
-				// The ADC is started on the Low -> High edge
-				// Once the ADC finishes ten conversions it enables the ADC handling task
-				// The ADC handling task restarts conversions as long as this pin is high
-				// If the pin goes High -> Low, the ADC task will finish and wont restart the ADC
-				// So nothing happens here.
+				// Once an item leaves the ADC it is ready to sort
+				
+				LL_UpdateStatus(STAGE2, SORTABLE);
 				g_WDTimeout = 0;
 		}
 		pin6state = 0;
@@ -310,6 +317,7 @@ void SERVER_Task(void* arg)
 			// Unblock the magnetic sensor when the item leaves O1
 			// The magnetic sensor blocks once the magnetism of the piece is inferred
 			_timer[2].state = READY;	
+			_timer[7].state = READY;
 			g_WDTimeout = 0;
 		}
 		pin7state = 1;
@@ -326,7 +334,6 @@ void SERVER_Task(void* arg)
 			}
 			else
 			{
-				LL_UpdateStatus(STAGE2, SORTABLE);
 				STAGE2 = LL_Next(STAGE2); // Increment stage 2
 			}
 			g_WDTimeout = 0;
@@ -349,7 +356,7 @@ void SERVER_Task(void* arg)
 void WATCHDOG_Task(void* arg)
 {
 	// If this function runs twice then then no item has triggered an optical sensor for 4 seconds.
-	if(g_WDTimeout) SYS_Pause(__FUNCTION__); 
+	if(g_WDTimeout > 1) SYS_Pause(__FUNCTION__); 
 	g_WDTimeout++;
 }
 
