@@ -55,7 +55,7 @@ const uint16_t STEEL_BOUNDARY_LOW = 299;
 const uint16_t ALUMINUM_BOUNDARY_HIGH = 100;
 const uint16_t ALUMINUM_BOUNDARY_LOW = 20;
 
-const uint8_t BELT_SPEED = 200;
+const uint8_t BELT_SPEED = 255;
 
 // Make sure to use the correct lists
 extern list* HEAD;
@@ -129,7 +129,7 @@ int main(void)
 		TIMER_Create(2000, 1, D_Blinky, NULL);		// Blinky Leds
 		_timer[6].state = READY;				//_timer[6]
 
-		TIMER_Create(9000, 1, WATCHDOG_Task, NULL);
+		TIMER_Create(5000, 1, WATCHDOG_Task, NULL);
 		_timer[7].state = BLOCKED;
 
 		UART_SendString("System Ready...\r\n");

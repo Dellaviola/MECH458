@@ -149,6 +149,7 @@ void SYS_Calibrate()
 	
 	while (LL_GetStatus(temp) != UNINITIALIZED)
 	{
+		PORTC = 0xFF;
 		char listbuff[50];
 		c++;
 		sprintf(listbuff, "Item: %d, Refl: %u, Mag: %u, Class %u, Status: %u\r\n", c, LL_GetRefl(temp), LL_GetMag(temp), LL_GetClass(temp), LL_GetStatus(temp));

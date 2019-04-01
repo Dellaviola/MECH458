@@ -71,6 +71,7 @@ void SERVER_Task(void* arg)
 		if(pin5state)
 		{
 			// Unblock EXIT_Task
+			// g_PauseRequest = 1;
 			_timer[3].state = READY;
 			g_WDTimeout = 0;
 		}
@@ -135,8 +136,8 @@ void ADC_Task(void* arg)
 	size_t i;
 	uint32_t total = 0;
 	
-	uint16_t max = 0;
-	uint16_t min = 1023;
+	uint16_t max = g_ADCResult[0];
+	uint16_t min = g_ADCResult[0];
 	
 	// Averaging
 	// Use atomic blocks to prevent interrupts while writing to multi-byte data
@@ -158,7 +159,7 @@ void ADC_Task(void* arg)
 	// Min Reflectivity Condition
 	ATOMIC_BLOCK(ATOMIC_RESTORESTATE)
 	{
-		if((total > 10) && (total < 900) && (total < LL_GetRefl(STAGE2)))
+		if((total > 10) && (total < 1000) && (total < LL_GetRefl(STAGE2)))
 		{
 			if (STAGE2) LL_UpdateRefl(STAGE2, total);
 		}

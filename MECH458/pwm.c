@@ -10,6 +10,7 @@
 
 /* Header */
 #include "pwm.h"
+#include "config.h"
 
 /*-----------------------------------------------------------*/
 
@@ -21,7 +22,7 @@ void PWM_Init()
     // Set Clock Source
     TCCR0B |= 0x03; // CS2:0 = 0b010 (prescaler = 8 for f_PWM = 488 Hz)
     // Set value we want timer to reset at (MAX)
-    OCR0A = 0x80; // Sets PWM duty cycle = 50%
+    OCR0A = BELT_SPEED; // Sets PWM duty cycle = 50%
 } // PWM_Init
 
 void PWM(const int dutyCycle)

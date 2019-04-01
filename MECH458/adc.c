@@ -37,8 +37,8 @@ ISR(ADC_vect)
 	if (g_ADCCount < 6)
 	{
 			g_ADCResult[g_ADCCount++] = ADC;
-			ADCSRA |= (1 << ADSC);
-			if (g_ADCCount == 10) _timer[1].state = READY;	 
+			ADCSRA |= (1 << ADSC);	 
 	}
+	if (g_ADCCount == 6) _timer[1].state = READY;
 }
 
