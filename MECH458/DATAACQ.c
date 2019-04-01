@@ -38,10 +38,10 @@ while(memory)
 		} else {
 		PORTB = ~0x0E;
 		}
-		if (g_ADCFlag && ((PINE & 0x40) == 0x40))
+		if (g_ADCCount && ((PINE & 0x40) == 0x40))
 		{
 			memory = 1;
-			g_ADCFlag = 0x00; //Clear ADC flag
+			g_ADCCount = 0x00; //Clear ADC flag
 			data[i++] = g_ADCResult;
 			ADCSRA |= _BV(ADSC);
 		}

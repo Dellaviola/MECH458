@@ -31,12 +31,12 @@ void PWM(const int dutyCycle)
 		OCR0A = BELT_SPEED;
 		if (dutyCycle) 
 		{
-			gMotorOn = 1;
+			g_MotorOn = 1;
 			PORTB = ~0x0E;
 		}
 		else 
 		{
-			gMotorOn = 0;
+			g_MotorOn = 0;
 			PORTB = ~0x0F;
 		}
 	}

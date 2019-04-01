@@ -85,7 +85,7 @@ void SERVER_Task(void* arg)
 		{
 			// Unblock MAG_Task and Watchdog Timer
 			_timer[2].state = READY;
-			_timre[7].state = READY;	
+			_timer[7].state = READY;	
 		}
 		pin7state = 1;
 	}
@@ -279,7 +279,7 @@ void BTN_Task(void* arg)
 			// Button 1 : Pause System
 			else if ((PIND & 0x03) == 0x01) 
 			{
-				g_PauseRequst =1 ;
+				g_PauseRequest = 1;
 				debounce = 0;
 			}
 			// Button 2 : Force Ramp Down 

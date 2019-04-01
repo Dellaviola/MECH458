@@ -36,7 +36,6 @@ void SYS_Init()
 	// Intiialize Globals
 	g_ADCCount = 0;
 	memset(g_ADCResult, 0, sizeof(g_ADCResult));
-	g_ADCFlag = 0;
 
 	HEAD = NULL;
 	TAIL = NULL;
