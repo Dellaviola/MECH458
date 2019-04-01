@@ -29,6 +29,7 @@ extern list* STAGE2;
 extern list* TAIL;
 extern list* FRONT;
 
+
 void D_Blinky(void *arg)
 {
 	//PORTC = 0x40;
@@ -134,7 +135,7 @@ void MAG_Task(void* arg)
 		//count = 0;
 		tick = 0;
 	}
-	else if(tick > 30)
+	else if(tick > 20)
 	{	
 		LL_UpdateStatus(STAGE1, INITIALIZED);
 		LL_UpdateMag(STAGE1, 0);
@@ -159,26 +160,36 @@ void EXIT_Task(void* arg)
 	//PORTC = 0x08;
 	
 	static volatile uint8_t position[6] = {100, 0, 50, 150, 100, 100};
+	extern stepperParam stepper;
 	
 	static uint8_t memory = 0;
+	static uint8_t delay = 0;
+	
+	uint8_t query = stepper._targetStep - stepper._currentStep ;
+	if (memory == 0) delay++;
+	
+	if((query < 15) && memory) PWM(0x80);
+	
 	if(stepper.current == position[LL_GetClass(HEAD)])
 	{
-		if(!gMotorOn) PWM(0x80);
-		LL_UpdateStatus(HEAD, EXPIRED);
-		HEAD = LL_Next(HEAD);
-		STEPPER_SetRotation(LL_GetClass(HEAD), LL_GetClass(HEAD->next));
-		_timer[3].state = BLOCKED;
-		//memory = 0;
+		PWM(0x80);
+		if (delay > 20 || memory)
+		{
+			memory = 1;
+			delay = 0;
+			if(LL_GetClass(HEAD) == LL_GetClass(HEAD->next)) memory = 0;
+			_timer[3].state = BLOCKED;
+			LL_UpdateStatus(HEAD, EXPIRED);
+			HEAD = LL_Next(HEAD);
+			STEPPER_SetRotation(position[LL_GetClass(HEAD)], position[LL_GetClass(HEAD->next)]);
+			
+		}
 	}
 	else
 	{
 		PWM(0);
-		if(memory == 0)
-		{
-			STEPPER_SetRotation(LL_GetClass(HEAD), LL_GetClass(HEAD->next));
-			memory = 1;
-		}
-	}
+	}	
+
 	if(LL_GetClass(HEAD) == END_OF_LIST); // rampdown
 	
 	//SYS_Pause(__FUNCTION__);
@@ -230,7 +241,6 @@ void BTN_Task(void* arg)
 			}
 		}
 	}
-	
 }
 void ADD_Task(void* arg)
 {
@@ -302,6 +312,8 @@ void SERVER_Task(void* arg)
 		if(pin5state)
 		{
 			// Transition Detected O3 High -> Low : Item At End
+// 			static volatile uint8_t position[6] = {100, 0, 50, 150, 100, 100};
+// 			if(stepper.current != position[LL_GetClass(HEAD)]) PWM(0);
 			_timer[3].state = READY;
 			//g_PauseRequest = 1;
 			g_WDTimeout = 0;
@@ -347,6 +359,11 @@ void SERVER_Task(void* arg)
 		if(!pin5state)
 		{
 			// Transition Detected O3 Low -> High : Item Exits System
+			
+// 			static volatile uint8_t position[6] = {100, 0, 50, 150, 100, 100};
+// 			LL_UpdateStatus(HEAD, EXPIRED);
+// 			HEAD = LL_Next(HEAD);
+// 			STEPPER_SetRotation(position[LL_GetClass(HEAD)], position[LL_GetClass(HEAD->next)]);
 			g_WDTimeout = 0;
 		}
 		pin5state = 1;			

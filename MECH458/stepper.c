@@ -69,7 +69,7 @@ int STEPPER_NumSteps(uint8_t target, uint8_t current)
 	else
 	{
 		//if there are a negative number of steps < 180; add 180 and rotate the other way
-		steps = (steps < (-1 * TURN_180)) ? (steps) : (-1) * (steps + TURN_180);
+		steps = (steps < (-1 * TURN_180)) ? (-1) * (steps + TURN_180) : (steps);
 	}
 	return steps;
 }
@@ -94,8 +94,8 @@ void STEPPER_SetRotation(uint8_t target, uint8_t next)
 {
 	cli();
 	//Use this function to set the target positions
-	stepper.target = position[target];
-	stepper.next = position[next];
+	stepper.target = target;
+	stepper.next = next;
 	STEPPER_Rotate();
 	OCR2A = accell[stepper._accellStep];
 	sei();

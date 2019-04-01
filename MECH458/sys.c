@@ -38,6 +38,7 @@ void SYS_Init()
 	STAGE1 = NULL;
 	STAGE2 = NULL;
 	FRONT = NULL;
+
 	
 	initNode = LL_ItemInit(65001,255, UNCLASSIFIED, UNINITIALIZED);
 	
@@ -74,6 +75,7 @@ void SYS_Pause(char str[20])
 	
 	sprintf(buffer,"System Pause Message: %s\r\n", str);
 	UART_SendString(buffer);
+
 	
 	while (LL_GetClass(temp) != END_OF_LIST)
 	{

@@ -21,6 +21,7 @@
 #include "uart.h"
 #include "string.h"
 #include "timer.h"
+#include "sys.h"
 
 //################## MAIN ROUTINE ##################
 void ADC_Init()

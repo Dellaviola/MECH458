@@ -123,6 +123,9 @@ return 0;
 		
 		PWM(0x80);
 	};
+	
+	int memory = 0;
+	static volatile uint8_t position[6] = {100, 0, 50, 150, 100, 100};
 	// Put IDLE operations in infinite loop
 	while (1)
 	{		
@@ -133,6 +136,7 @@ return 0;
 
 		list* temp = HEAD;
 		uint16_t reflVal; 
+		
 
 		while(temp)
 		{
@@ -169,6 +173,11 @@ return 0;
 				else
 				{
 					// Unknown non-magnetic object
+				}
+				if(memory == 0)
+				{
+					STEPPER_SetRotation(position[LL_GetClass(HEAD)],position[LL_GetClass(HEAD)]);
+					memory = 1;
 				}
 			}
 			temp = LL_Next(temp);
