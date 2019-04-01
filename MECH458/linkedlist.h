@@ -39,6 +39,7 @@ typedef enum status_e
 {
 	UNINITIALIZED,
 	INITIALIZED,
+	SORTABLE,
 	EXPIRED	
 }estatus;
 
@@ -107,7 +108,7 @@ uint8_t LL_Size(list*);
 
 //
 /*! 
-* \brief 	Because of the quasi-polymorphism of this list lib
+* \brief 	Because of the quasi-polymorphism of this list library
 *			these functions make accessing and updating elements
 * 			within the nested nodes easier
 */	

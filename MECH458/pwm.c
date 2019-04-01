@@ -28,7 +28,7 @@ void PWM(const int dutyCycle)
 {
 	ATOMIC_BLOCK(ATOMIC_RESTORESTATE)
 	{
-		OCR0A = 0x80;
+		OCR0A = BELT_SPEED;
 		if (dutyCycle) 
 		{
 			gMotorOn = 1;

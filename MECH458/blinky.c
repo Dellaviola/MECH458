@@ -45,6 +45,7 @@ void SERVER_Task(void* arg)
 		{
 			// Signal the start of the system by placing the first node into stage1
 			if(STAGE1 == NULL) STAGE1 = HEAD;
+			g_WDTimeout = 0;
 
 		}
 		pin7state = 0;
@@ -53,10 +54,12 @@ void SERVER_Task(void* arg)
 	// E6 : O2 (Reflective)
 	if((PINE & 0x40) == 0) 
 	{
-		// Transition Detected O2 High -> Low : Stop ADC
+		// Transition Detected O2 High -> Low : Leave Reflect
 		if(pin6state)
 		{
-			// Nothing happens here
+			// Item is sortable
+			LL_UpdateStatus(STAGE2, SORTABLE);
+			g_WDTimeout = 0;
 		}
 		pin6state = 0;
 	}
@@ -69,7 +72,7 @@ void SERVER_Task(void* arg)
 		{
 			// Unblock EXIT_Task
 			_timer[3].state = READY;
-			SYS_Pause(__FUNCTION__);
+			g_WDTimeout = 0;
 		}
 		pin5state = 0;
 	}
@@ -80,8 +83,9 @@ void SERVER_Task(void* arg)
 		// Transition Detected O2 Low -> High : Item Exits O1
 		if(!pin7state)
 		{
-			// Unblock MAG_Task
-			_timer[2].state = READY;	
+			// Unblock MAG_Task and Watchdog Timer
+			_timer[2].state = READY;
+			_timre[7].state = READY;	
 		}
 		pin7state = 1;
 	}
@@ -92,7 +96,6 @@ void SERVER_Task(void* arg)
 		// Transition Detected O1 Low -> High : Item enters ADCs
 		if(!pin6state)
 		{
-
 			if(STAGE2 == NULL)
 			{
 				// First Item enters stage 2
@@ -131,9 +134,6 @@ void ADC_Task(void* arg)
 
 	size_t i;
 	uint32_t total = 0;
-	char buff[50];
-	static int j = 0;
-	j++;
 	
 	// Averaging
 	// Use atomic blocks to prevent interrupts while writing to multi-byte data
@@ -179,7 +179,6 @@ void MAG_Task(void* arg)
 	*/
 	static uint8_t tick = 0;	
 	if (g_MotorOn) tick++;
-	char buff[2];
 
 	// If the item is magnetic
 	if((PINE & 0x10) == 0)
@@ -187,6 +186,7 @@ void MAG_Task(void* arg)
 		LL_UpdateStatus(STAGE1, INITIALIZED);
 		LL_UpdateMag(STAGE1, 1);
 		STAGE1 = LL_Next(STAGE1);
+		
 		_timer[2].state = BLOCKED;
 		tick = 0;
 	}
@@ -196,6 +196,7 @@ void MAG_Task(void* arg)
 		LL_UpdateStatus(STAGE1, INITIALIZED);
 		LL_UpdateMag(STAGE1, 0);
 		STAGE1 = LL_Next(STAGE1);
+		
 		_timer[2].state = BLOCKED;
 		tick = 0;
 	}
@@ -209,23 +210,49 @@ void EXIT_Task(void* arg)
 	*
 	* \param	Unused
 	*/
-	// If tray is in position
-	if(stepper.current == LL_GetClass(HEAD))
+	
+	// Stepper Context
+	static volatile uint8_t position[6] = {100, 0, 50, 150, 100, 100};
+	extern stepperParam stepper;
+
+	// Utility Variables
+	static uint8_t memory = 0;
+	static uint8_t delay = 0;
+
+	// To delay executing the remainder of this task
+	if(memory == 0) delay++;
+
+	uint8_t query = stepper._targetStep - stepper._currentStep;
+
+	if((query < 15) && memory) PWM(0x80);
+	
+	if(stepper.current == position[LL_GetClass(HEAD)])
 	{
-		if(!g_MotorOn) PWM(0x80);
-		LL_UpdateStatus(HEAD, EXPIRED);
-		HEAD = LL_Next(HEAD);
-		STEPPER_SetRotation(LL_GetClass(HEAD), LL_GetClass(HEAD->next));
-		_timer[3].state = BLOCKED;
+		PWM(0x80);
+		
+		// If the next two items have the same classification
+		// or this is the first item, delay the task.
+		if (delay > 20 || memory)
+		{
+			memory = 1;
+			delay = 0;
+			if(LL_GetClass(HEAD) == LL_GetClass(HEAD->next)) memory = 0;
+			LL_UpdateStatus(HEAD, EXPIRED);
+			HEAD = LL_Next(HEAD);
+			STEPPER_SetRotation(position[LL_GetClass(HEAD)], position[LL_GetClass(HEAD->next)]);
+			
+			// Finished Exit Handling
+			_timer[3].state = BLOCKED;
+		}
 	}
-	// If tray is not in position
 	else
 	{
 		PWM(0);
-	}
+	}	
 
 	// Rampdown
 	if(LL_GetClass(HEAD) == END_OF_LIST);
+
 } // EXIT_Task
 
 void BTN_Task(void* arg)
@@ -236,6 +263,7 @@ void BTN_Task(void* arg)
 	*			Handles button events
 	* \param	Unused
 	*/
+
 	static uint8_t debounce = 0;
 	
 	if (PIND & 0x03)
@@ -246,21 +274,17 @@ void BTN_Task(void* arg)
 			// Both Buttons : No Function
 			if((PIND & 0x03) == 0x00) 
 			{
-				UART_SendString("Both Buttons Pressed!\r\n");
 				debounce = 0;
 			}
 			// Button 1 : Pause System
 			else if ((PIND & 0x03) == 0x01) 
 			{
-				UART_SendString("Button1 Pressed!\r\r\r\rPausing System...");
-				SYS_Pause("Pause Requested");
-				g_IdleStartTime = 0;
+				g_PauseRequst =1 ;
 				debounce = 0;
 			}
 			// Button 2 : Force Ramp Down 
 			else if ((PIND & 0x03) == 0x02) 
 			{
-				UART_SendString("Button2 Pressed!\r\n");
 				debounce = 0;
 			}
 			// Spurious
@@ -272,6 +296,13 @@ void BTN_Task(void* arg)
 		}
 	}	
 } // BTN_Task
+
+void WATCHDOG_Task(void* arg)
+{
+	// If this function runs twice then then no item has triggered an optical sensor for 4 seconds.
+	if(g_WDTimeout > 1) SYS_Pause(__FUNCTION__); 
+	g_WDTimeout++;
+}
 
 /*-----------------------------------------------------------*/
 /* 					Debug and LED functions					 */

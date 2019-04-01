@@ -18,22 +18,22 @@
 
 typedef struct stepper_param
 {
-	uint8_t _stepNum;
-	uint8_t direction;
-	uint8_t target;
-	uint8_t current;
-	uint8_t _targetStep;
-	uint8_t _currentStep;
-	uint8_t next;
-	uint8_t _willContinue;
-	uint8_t _isInitiated;
-	uint8_t _accellStep;
+	volatile uint8_t _stepNum;
+	volatile uint8_t direction;
+	volatile int target;
+	volatile uint8_t current;
+	volatile int _targetStep;
+	volatile uint8_t _currentStep;
+	volatile uint8_t next;
+	volatile uint8_t _willContinue;
+	volatile uint8_t _isInitiated;
+	volatile uint8_t _accellStep;
 } stepperParam;
 
 stepperParam stepper;
 
 void STEPPER_Init(void);
-uint16_t STEPPER_NumSteps(uint8_t, uint8_t);
+int STEPPER_NumSteps(uint8_t, uint8_t);
 void STEPPER_Rotate(void);
 void STEPPER_SetRotation(uint8_t, uint8_t);
 

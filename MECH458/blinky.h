@@ -40,6 +40,7 @@ void MAG_Task(void *);
 void EXIT_Task(void *);
 void SERVER_Task(void*);
 void BTN_Task(void*);
+void WATCHDOG_Task(void*);
 
 /*-----------------------------------------------------------*/
 /* 		        LED/DEBUG Functions                  */

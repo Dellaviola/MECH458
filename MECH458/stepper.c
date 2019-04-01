@@ -23,18 +23,22 @@ volatile uint8_t accell[6] = {0x94, 0x7D, 0x66, 0x50, 0x43, 0x40};
 
 void STEPPER_Init()
 {
+	cli();
+	// Initialize Stepper Parameters
 	stepper._stepNum = 0;
 	stepper.direction = 1;
 	stepper.target = 0;
-	//Rotate 200 Steps to find the hall sensor
-	stepper.current = 200;
-	stepper._targetStep = 0;
+	stepper.current = 0;
 	stepper._currentStep = 0;
 	stepper.next = 0;
 	stepper._isInitiated = 0;
 	stepper._accellStep = 0;
+
+	// For calibration
+	stepper._targetStep = 200;
+
 	PORTA = 0x30;
-	cli();
+
 	//Initial delay of 20ms
 	OCR2A = 0x94;
 	// Set to CTC Mode
@@ -46,11 +50,11 @@ void STEPPER_Init()
 	// set prescaler to 256 and starts PWM
 	//TCCR2B |= ((1 << CS22) | (1 << CS21));
 
+	// Enable Interrupts to calibrate
 	sei();
-	// enable interrupts
-}
+} // STEPPER_Init
 
-uint16_t STEPPER_NumSteps(uint8_t target, uint8_t current)
+int STEPPER_NumSteps(uint8_t target, uint8_t current)
 {
 	int steps = (target - current);
 	if (steps >= 0)
@@ -61,10 +65,10 @@ uint16_t STEPPER_NumSteps(uint8_t target, uint8_t current)
 	else
 	{
 		//if there are a negative number of steps < 180; add 180 and rotate the other way
-		steps = (steps < (-1 * TURN_180)) ? (steps) : (-1) * (steps + TURN_180);
+		steps = (steps < (-1 * TURN_180)) ? (-1) * (steps + TURN_180) : (steps);
 	}
 	return steps;
-}
+} // STEPPER_NumSteps
 
 void STEPPER_Rotate()
 {
@@ -80,7 +84,7 @@ void STEPPER_Rotate()
 	//stepper can not take -ve numbers of steps
 	stepper._targetStep = abs(stepper._targetStep);
 	stepper._currentStep = 0;
-}
+} // STEPPER_Rotate
 
 void STEPPER_SetRotation(uint8_t target, uint8_t next)
 {
@@ -96,22 +100,6 @@ void STEPPER_SetRotation(uint8_t target, uint8_t next)
 ISR(TIMER2_COMPA_vect)
 {
 	volatile uint8_t step[4] = {0x36, 0x2E, 0x2D, 0x35};
-
-	if (stepper._isInitiated == 0)
-	{
-		if ((PINE && 0x04) == 0)
-		{
-			//Reset the values when the hall sensor fires for the first time
-			stepper._isInitiated = 1;
-			stepper._stepNum = 0;
-			stepper.direction = 1;
-			stepper.target = 0;
-			stepper.current = 0;
-			stepper._targetStep = 0;
-			stepper._currentStep = 0;
-			stepper.next = 0;
-		}
-	}
 
 	if (stepper._currentStep < stepper._targetStep)
 	{
@@ -140,6 +128,21 @@ ISR(TIMER2_COMPA_vect)
 		//if the direction is changing reset the delay
 		stepper._accellStep = (stepper._willContinue) ? stepper._accellStep : 0;
 		OCR2A = accell[stepper._accellStep];
-		PORTA = (stepper._willContinue) ? PORTA : 0x00;
+		PORTA = (!stepper._willContinue) ? PORTA : PORTA;
 	}
-}
+	if (stepper._isInitiated == 0)
+	{
+		if ((PINE & 0x08) == 0)
+		{
+			//Reset the values when the hall sensor fires for the first time
+			stepper._isInitiated = 1;
+			stepper._stepNum = 0;
+			stepper.direction = 1;
+			stepper.target = 0;
+			stepper.current = 0;
+			stepper._targetStep = 0;
+			stepper._currentStep = 0;
+			stepper.next = 0;
+		}
+	}
+} // STEPPER_ISR

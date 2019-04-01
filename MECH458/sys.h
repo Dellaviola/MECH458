@@ -33,5 +33,6 @@
 
 void SYS_Init(void);
 void SYS_Pause(char[20]);
+void SYS_Calibrate(void);
 
 #endif /* SYS_H_ */

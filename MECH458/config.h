@@ -22,18 +22,17 @@
 /* Program Includes */
 #include "linkedlist.h"
 
-// Settings
+// Setting Declarations
 
-
+const uint8_t BELT_SPEED;
 
 
 // Globals
 volatile uint16_t g_ADCResult[10];
 volatile uint16_t g_ADCCount;
-volatile uint8_t g_ADCFlag;
-volatile uint16_t g_IdleStartTime;
-volatile uint16_t g_SchedulerStartTime;
 volatile uint8_t g_MotorOn; 
+volatile uint8_t g_PauseRequest;
+volatile uint8_t g_WDTimeout;
 /*
         TIMER DEFINES
 */
