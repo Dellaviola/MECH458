@@ -94,7 +94,7 @@ int main(void)
 	
 	// Initialize the system
 	SYS_Init();
-
+	
 	// Wait for start signal
 	while(1)
 	{
@@ -112,28 +112,29 @@ int main(void)
 		_timer[0].state = READY;
 		
 		TIMER_Create(1, 1, ADC_Task, NULL);			// ADC Handler
-		_timer[1].state = BLOCKED;
+		_timer[1].state = READY;
 		
 		TIMER_Create(1, 1, MAG_Task, NULL);			// Magnetic Sensor Handler
-		_timer[2].state = BLOCKED;
+		_timer[2].state = READY;
 		
 		TIMER_Create(1, 1, EXIT_Task, NULL);		// Item Exit Handling
-		_timer[3].state = BLOCKED;
+		_timer[3].state = READY;
 		
-		TIMER_Create(180, 1, ADD_Task, NULL);		// Item Enter Handling
-		_timer[4].state = BLOCKED;
+		TIMER_Create(1, 1, ADD_Task, NULL);		// Item Enter Handling
+		_timer[4].state = READY;
 		
-		TIMER_Create(50, 1, BTN_Task, NULL);		// Button Handling
+		TIMER_Create(100, 1, BTN_Task, NULL);		// Button Handling
 		_timer[5].state = READY;
 		
-		TIMER_Create(1000, 1, D_Blinky, NULL);		// Blinky Leds
+		TIMER_Create(2000, 1, D_Blinky, NULL);		// Blinky Leds
 		_timer[6].state = READY;				//_timer[6]
 
-		TIMER_Create(4505, 1, WATCHDOG_Task, NULL);
-		_timer[7].state = BLOCKED;
+		TIMER_Create(9000, 1, WATCHDOG_Task, NULL);
+		_timer[7].state = READY;
 
 		UART_SendString("System Ready...\r\n");
 		PWM(0x80);
+		PORTC = 0xFF;
 	};
 
 	// For initial stepper positioning
@@ -142,57 +143,81 @@ int main(void)
 
 	// Put IDLE operations in infinite loop
 	while (1)
-	{	
-		// Check for pause request	
-		if(g_PauseRequest) SYS_Pause(__FUNCTION__);
-
-		list* temp = HEAD;
-		uint16_t reflVal; 
+	{
+		/*
+			Optimized ADC
+			
+			Using 6/2 FIR average.
+			
+			take 6 readings, remove min and max, average.
+			
+			ADC e : 40us
+			ADC ISR 6e : 86ua
+			
+			TOTAL scheduler usage 220 us
+			
+			Design for 100% utilization
+			
+			Will leave some slack for stepper ~ 12us
+			
+			measured utilization with stepper = 243us
+			leave 7 us for isr issues
+			leave 15 us for idle time
+			
+			give 265 us
+			
+			MIN FRAME SIZE: 265us = 2120 ticks = 0x0848
+			
+			TESTING: 265us Frame
+					 240us Execution
+					 15us  Slack
+					 
+					 TOTAL U = 91% + Premptable idle time classifier
+					 
+					 Classifier can classify up to 3 objects per frame at max U;
+			
+		*/
 		
-		while(temp)
+		list* temp = HEAD;
+		uint16_t reflVal = LL_GetRefl(temp);
+		uint8_t magVal = LL_GetMag(temp);
+		
+		PORTC |= 0x08;
+		
+		if(magVal) //
 		{
-			// Classify any sortable nodes
-			if(temp && (LL_GetClass(temp) == UNCLASSIFIED) && (LL_GetStatus(temp) == SORTABLE))
+			if((reflVal >= ALUMINUM_BOUNDARY_LOW) && (reflVal <= ALUMINUM_BOUNDARY_HIGH))
 			{
-	
-				reflVal = LL_GetRefl(temp);				
-				uint8_t magVal = LL_GetMag(temp);
-				
-				if(magVal) // 
-				{
-					if((reflVal >= ALUMINUM_BOUNDARY_LOW) && (reflVal <= ALUMINUM_BOUNDARY_HIGH))
-					{
-						LL_UpdateClass(temp, ALUMINUM);
-					}
-					else if ((reflVal >= STEEL_BOUNDARY_LOW) && (reflVal <= STEEL_BOUNDARY_HIGH))
-					{
-						LL_UpdateClass(temp, STEEL);
-					}
-					else
-					{
-						// Unknown Magnetic Object
-					}
-				}
-				else if((reflVal >= BLACK_BOUNDARY_LOW) && (reflVal <= BLACK_BOUNDARY_HIGH))
-				{
-					LL_UpdateClass(temp, BLACK);
-				}
-				else if((reflVal >= WHITE_BOUNDARY_LOW) && (reflVal <= WHITE_BOUNDARY_HIGH))
-				{
-					LL_UpdateClass(temp, WHITE);
-				}
-				else
-				{
-					// Unknown non-magnetic object
-				}
-				if(memory == 0)
-				{
-					STEPPER_SetRotation(position[LL_GetClass(HEAD)],position[LL_GetClass(HEAD)]);
-					memory = 1;
-				}
+				LL_UpdateClass(temp, ALUMINUM);
 			}
-			temp = LL_Next(temp);
+			else if ((reflVal >= STEEL_BOUNDARY_LOW) && (reflVal <= STEEL_BOUNDARY_HIGH))
+			{
+				LL_UpdateClass(temp, STEEL);
+			}
+			else
+			{
+				// Unknown Magnetic Object
+			}
 		}
+		else if((reflVal >= BLACK_BOUNDARY_LOW) && (reflVal <= BLACK_BOUNDARY_HIGH))
+		{
+			LL_UpdateClass(temp, BLACK);
+		}
+		else if((reflVal >= WHITE_BOUNDARY_LOW) && (reflVal <= WHITE_BOUNDARY_HIGH))
+		{
+			LL_UpdateClass(temp, WHITE);
+		}
+		else
+		{
+			// Unknown non-magnetic object
+		}
+		if(memory == 0)
+		{
+			STEPPER_SetRotation(position[LL_GetClass(HEAD)],position[LL_GetClass(HEAD)]);
+			memory = 1;
+		}
+		PORTC &= 0b11110111;
+		
   	}
 	return 0;
 }

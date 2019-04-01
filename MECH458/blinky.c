@@ -131,23 +131,29 @@ void ADC_Task(void* arg)
 	 * 			Replaces item if condition is met and restarts ADC	
 	 *  \param  Unused
 	 */
+	//PORTC ^= 0x80;
 
 	size_t i;
 	uint32_t total = 0;
 	
+	uint16_t min = 1023;
+	uint16_t max = 0;
+	
 	// Averaging
 	// Use atomic blocks to prevent interrupts while writing to multi-byte data
-	for(i = 0; i < 10; i++)
+	for(i = 0; i < 6; i++)
 	{
 		ATOMIC_BLOCK(ATOMIC_RESTORESTATE)
 		{
 			total += g_ADCResult[i];
+			if (g_ADCResult[i] < min) min = g_ADCResult[i];
+			if (g_ADCResult[i] > max) max = g_ADCResult[i];
 		}
 	}
 
 	ATOMIC_BLOCK(ATOMIC_RESTORESTATE)
 	{
-		total = total/10;
+		total = (total - min - max)/4;
 	}
 	
 	// Min Reflectivity Condition
@@ -162,11 +168,12 @@ void ADC_Task(void* arg)
 	g_ADCCount = 0;
 
 	// Block ADC_Task
-	_timer[1].state = BLOCKED;
+	//_timer[1].state = BLOCKED;
 
 	// Restart ADC
-	if((PINE & 0x40) == 0x40) ADCSRA |= (1 << ADSC);
-
+	//if((PINE & 0x40) == 0x40) ADCSRA |= (1 << ADSC);
+	ADCSRA |= (1 << ADSC);
+	//PORTC ^= 0x80;
 } // ADC_Task
 
 void MAG_Task(void* arg)
@@ -181,13 +188,13 @@ void MAG_Task(void* arg)
 	if (g_MotorOn) tick++;
 
 	// If the item is magnetic
-	if((PINE & 0x10) == 0)
+	if(((PINE & 0x10) == 0) || 1)
 	{
 		LL_UpdateStatus(STAGE1, INITIALIZED);
 		LL_UpdateMag(STAGE1, 1);
 		STAGE1 = LL_Next(STAGE1);
 		
-		_timer[2].state = BLOCKED;
+		//_timer[2].state = BLOCKED;
 		tick = 0;
 	}
 	// If the item is not magnetic
@@ -197,7 +204,7 @@ void MAG_Task(void* arg)
 		LL_UpdateMag(STAGE1, 0);
 		STAGE1 = LL_Next(STAGE1);
 		
-		_timer[2].state = BLOCKED;
+		//_timer[2].state = BLOCKED;
 		tick = 0;
 	}
 } // MAG_Task
@@ -226,7 +233,7 @@ void EXIT_Task(void* arg)
 
 	if((query < 15) && memory) PWM(0x80);
 	
-	if(stepper.current == position[LL_GetClass(HEAD)])
+	if((stepper.current == position[LL_GetClass(HEAD)]) || 1)
 	{
 		PWM(0x80);
 		
@@ -242,7 +249,7 @@ void EXIT_Task(void* arg)
 			STEPPER_SetRotation(position[LL_GetClass(HEAD)], position[LL_GetClass(HEAD->next)]);
 			
 			// Finished Exit Handling
-			_timer[3].state = BLOCKED;
+			//_timer[3].state = BLOCKED;
 		}
 	}
 	else
@@ -300,7 +307,7 @@ void BTN_Task(void* arg)
 void WATCHDOG_Task(void* arg)
 {
 	// If this function runs twice then then no item has triggered an optical sensor for 4 seconds.
-	if(g_WDTimeout > 1) SYS_Pause(__FUNCTION__); 
+	//if(g_WDTimeout > 1) SYS_Pause(__FUNCTION__); 
 	g_WDTimeout++;
 }
 

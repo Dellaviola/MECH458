@@ -99,6 +99,7 @@ void STEPPER_SetRotation(uint8_t target, uint8_t next)
 
 ISR(TIMER2_COMPA_vect)
 {
+	PORTC ^= 0x01;
 	volatile uint8_t step[4] = {0x36, 0x2E, 0x2D, 0x35};
 
 	if (stepper._currentStep < stepper._targetStep)
@@ -145,4 +146,5 @@ ISR(TIMER2_COMPA_vect)
 			stepper.next = 0;
 		}
 	}
+	PORTC ^=0x01;
 } // STEPPER_ISR

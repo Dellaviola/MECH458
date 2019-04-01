@@ -34,14 +34,16 @@ ISR(ADC_vect)
 {
 	//
 	// Take 10 samples	
-	if (g_ADCCount < 10)
+	PORTC ^= 0x08;
+	if (g_ADCCount < 6)
 	{
 			g_ADCResult[g_ADCCount++] = ADC;
-			ADCSRA |= (1 << ADSC);	 
-	} // if
+			ADCSRA |= (1 << ADSC);	
+			if (g_ADCCount == 6) _timer[1].state = READY;
+	}
 
 	// Unblock ADC task
-	if (g_ADCCount == 10) _timer[1].state = READY;
-
+	
+	PORTC ^= 0x08;
 }
 

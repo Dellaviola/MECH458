@@ -20,7 +20,6 @@ void SYS_Init()
 	*/
 	
 	cli();
-	
 	// Change system to 8Mhz
 	CLKPR = (1<<CLKPCE);
 	CLKPR = 0;
@@ -32,10 +31,9 @@ void SYS_Init()
 	PWM_Init();
 	ADC_Init();
 	STEPPER_Init();
-	
 	// Intiialize Globals
 	g_ADCCount = 0;
-	memset(g_ADCResult, 0, sizeof(g_ADCResult));
+	memset(g_ADCResult, 800, sizeof(g_ADCResult));
 
 	HEAD = NULL;
 	TAIL = NULL;
@@ -46,13 +44,13 @@ void SYS_Init()
 	// Initialize Item List
 	itemNode* initNode = NULL;
 	initNode = LL_ItemInit(65001,255, UNCLASSIFIED, UNINITIALIZED);
-	
+		
 	// First Node
 	HEAD = LL_ItemListInit(initNode);
 	FRONT = HEAD;
 
 	// 48 total nodes for trial run
-	for(int i = 0; i < 47; i--)
+	for(int i = 0; i < 47; i++)
 	{
 		initNode = LL_ItemInit(65000 - i,250 - i, UNCLASSIFIED, UNINITIALIZED);
 		TAIL = LL_AddBack(HEAD, initNode);

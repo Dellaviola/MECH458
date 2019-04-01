@@ -23,6 +23,7 @@ ISR (TIMER1_COMPA_vect)    // Timer1 ISR
 	*/	
 	_timer_tick++;
 	size_t i;
+	PORTC ^= 0xFE;
 	
 	for (i = 0; i < MAX_TIMERS; i++) {
 		
@@ -42,6 +43,7 @@ ISR (TIMER1_COMPA_vect)    // Timer1 ISR
 			}
 		}
 	}
+	PORTC ^= 0xFE;
 }
 
 
@@ -55,8 +57,10 @@ void TIMER_Init(void)
 	*/	
     TCNT1 = 0x0000;
 
-	// 12C0 == 600us, 960 = 300 us, 0x0DE0 = 444us
-    OCR1A = 0x0DE0;
+	// 12C0 == 600us, 960 = 300 us, 0x0DE0 = 444us, 0x06F0 = 222us, 0x0A68 = 333us, 0x0898 = 275 us, 0x848 = 265us
+	
+	// At 6/2 adc
+    OCR1A = 0x0848;
 
 	// Timer mode with no prescaling and CTC mode (reset counter on compare mode)   
     TCCR1A = 0x00;
