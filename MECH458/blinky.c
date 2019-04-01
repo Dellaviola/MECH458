@@ -135,19 +135,24 @@ void ADC_Task(void* arg)
 	size_t i;
 	uint32_t total = 0;
 	
+	uint16_t max = 0;
+	uint16_t min = 1023;
+	
 	// Averaging
 	// Use atomic blocks to prevent interrupts while writing to multi-byte data
-	for(i = 0; i < 10; i++)
+	for(i = 0; i < 6; i++)
 	{
 		ATOMIC_BLOCK(ATOMIC_RESTORESTATE)
 		{
 			total += g_ADCResult[i];
+			if(g_ADCResult[i] < min) min = g_ADCResult[i];
+			if(g_ADCResult[i] > max) max = g_ADCResult[i];
 		}
 	}
 
 	ATOMIC_BLOCK(ATOMIC_RESTORESTATE)
 	{
-		total = total/10;
+		total = (total - max - min)/4;
 	}
 	
 	// Min Reflectivity Condition

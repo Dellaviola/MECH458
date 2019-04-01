@@ -120,16 +120,16 @@ int main(void)
 		TIMER_Create(1, 1, EXIT_Task, NULL);		// Item Exit Handling
 		_timer[3].state = BLOCKED;
 		
-		TIMER_Create(180, 1, ADD_Task, NULL);		// Item Enter Handling
+		TIMER_Create(1, 0, ADD_Task, NULL);		// Item Enter Handling
 		_timer[4].state = BLOCKED;
 		
-		TIMER_Create(50, 1, BTN_Task, NULL);		// Button Handling
+		TIMER_Create(100, 1, BTN_Task, NULL);		// Button Handling
 		_timer[5].state = READY;
 		
-		TIMER_Create(1000, 1, D_Blinky, NULL);		// Blinky Leds
+		TIMER_Create(2000, 1, D_Blinky, NULL);		// Blinky Leds
 		_timer[6].state = READY;				//_timer[6]
 
-		TIMER_Create(4505, 1, WATCHDOG_Task, NULL);
+		TIMER_Create(9000, 1, WATCHDOG_Task, NULL);
 		_timer[7].state = BLOCKED;
 
 		UART_SendString("System Ready...\r\n");

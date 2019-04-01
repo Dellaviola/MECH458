@@ -33,15 +33,12 @@ void ADC_Init()
 ISR(ADC_vect)
 {
 	//
-	// Take 10 samples	
-	if (g_ADCCount < 10)
+	// Take 6 samples	
+	if (g_ADCCount < 6)
 	{
 			g_ADCResult[g_ADCCount++] = ADC;
-			ADCSRA |= (1 << ADSC);	 
-	} // if
-
-	// Unblock ADC task
-	if (g_ADCCount == 10) _timer[1].state = READY;
-
+			ADCSRA |= (1 << ADSC);
+			if (g_ADCCount == 10) _timer[1].state = READY;	 
+	}
 }
 

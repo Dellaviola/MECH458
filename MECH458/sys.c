@@ -52,7 +52,7 @@ void SYS_Init()
 	FRONT = HEAD;
 
 	// 48 total nodes for trial run
-	for(int i = 0; i < 47; i--)
+	for(int i = 0; i < 47; i++)
 	{
 		initNode = LL_ItemInit(65000 - i,250 - i, UNCLASSIFIED, UNINITIALIZED);
 		TAIL = LL_AddBack(HEAD, initNode);
