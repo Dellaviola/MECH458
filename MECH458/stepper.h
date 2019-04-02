@@ -15,6 +15,7 @@
 
 /* Program Includes */
 #include "config.h"
+#include "pwm.h"
 
 typedef struct stepper_param
 {

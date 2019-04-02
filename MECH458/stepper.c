@@ -108,8 +108,8 @@ ISR(TIMER2_COMPA_vect)
 		stepper._stepNum = (stepper._stepNum == 3) ? 0 : (stepper._stepNum + 1);
 
 		stepper._currentStep++;
-
-		//Simple acceleration / deceleration block uses crve defined in accel
+		if((stepper._targetStep - stepper._currentStep) < 15) PWM(1); 
+		//Simple acceleration / deceleration block uses curve defined in accel
 		if (((stepper._targetStep - stepper._currentStep) <= 5) && (accell[stepper._accellStep] < 0x94))
 		{
 			stepper._accellStep--;
@@ -120,7 +120,6 @@ ISR(TIMER2_COMPA_vect)
 		}
 		OCR2A = accell[stepper._accellStep];
 	}
-
 	else if (stepper._currentStep == stepper._targetStep)
 	{
 		//if you are at the target, don't rotate any farther and adjust the current position
@@ -129,6 +128,8 @@ ISR(TIMER2_COMPA_vect)
 		stepper._accellStep = (stepper._willContinue) ? stepper._accellStep : 0;
 		OCR2A = accell[stepper._accellStep];
 		PORTA = (!stepper._willContinue) ? PORTA : PORTA;
+		g_ExitBuffer = 0;
+		STEPPER_SetRotation(step[LL_GetClass(HEAD->prev)], step[LL_GetClass(HEAD)]);
 	}
 	if (stepper._isInitiated == 0)
 	{

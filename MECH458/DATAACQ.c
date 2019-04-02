@@ -42,17 +42,17 @@ while(memory)
 		{
 			memory = 1;
 			g_ADCCount = 0x00; //Clear ADC flag
-			data[i++] = g_ADCResult;
+			data[i++] = g_ADCResult[i];
 			ADCSRA |= _BV(ADSC);
 		}
 		if ((memory == 1) && ((PINE & 0x40) == 0) && ((PIND & 0x01) == 0x01)){
 			PORTB = ~0x0f;
-			for (i = 0; i < sizeof(data); i++){
-				if (data[i] < 1000) {
-					sprintf(datao,"%d\r\n",data[i]);
-					UART_SendString(datao);
-				}	
-			}
+// 			for (i = 0; i < sizeof(data); i++){
+// // 				if (data[i] < 1000) {
+// // 					sprintf(datao,"%d\r\n",data[i]);
+// // 					UART_SendString(datao);
+// // 				}	
+// 			}
 			i = 0;
 			memory = 0;
 		}

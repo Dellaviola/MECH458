@@ -127,9 +127,9 @@ int main(void)
 		_timer[5].state = READY;
 		
 		TIMER_Create(2000, 1, D_Blinky, NULL);		// Blinky Leds
-		_timer[6].state = READY;				//_timer[6]
+		_timer[6].state = READY;					
 
-		TIMER_Create(5000, 1, WATCHDOG_Task, NULL);
+		TIMER_Create(5000, 1, WATCHDOG_Task, NULL); // For Rampdown or system stalls
 		_timer[7].state = BLOCKED;
 
 		UART_SendString("System Ready...\r\n");
@@ -144,7 +144,7 @@ int main(void)
 	while (1)
 	{	
 		// Check for pause request	
-		if(g_PauseRequest) SYS_Calibrate("SET\r\n");
+		if(g_PauseRequest) SYS_Pause(__FUNCTION__);
 
 		list* temp = HEAD;
 		uint16_t reflVal; 
@@ -184,10 +184,10 @@ int main(void)
 				else
 				{
 					// Unknown non-magnetic object might be aluminum
-					if((reflVal >= ALUMINUM_BOUNDARY_LOW) && (reflVal <= ALUMINUM_BOUNDARY_HIGH))
-					{
-						LL_UpdateClass(temp, ALUMINUM);
-					}
+// 					if((reflVal >= ALUMINUM_BOUNDARY_LOW) && (reflVal <= ALUMINUM_BOUNDARY_HIGH))
+// 					{
+// 						LL_UpdateClass(temp, ALUMINUM);
+// 					}
 				}
 				if(memory == 0)
 				{

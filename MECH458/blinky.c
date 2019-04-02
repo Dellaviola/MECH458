@@ -36,6 +36,7 @@ void SERVER_Task(void* arg)
 	static uint8_t pin7state = 1;
 	static uint8_t pin6state = 1;
 	static uint8_t pin5state = 1;
+
 	// E7 : O1 (Enter)
 	if((PINE & 0x80) == 0) 
 	{
@@ -70,10 +71,8 @@ void SERVER_Task(void* arg)
 		if(pin5state)
 		{
 			// Unblock EXIT_Task
-			// g_PauseRequest = 1;
 			_timer[3].state = READY;
 			g_WDTimeout = 0;
-			PORTC = 0xFF;
 		}
 		pin5state = 0;
 	}
@@ -117,8 +116,10 @@ void SERVER_Task(void* arg)
 		// Transition Detected O3 Low -> High : Item Exits System
 		if(!pin5state)
 		{
-			// Nothing happens here
-			PORTC = 0x00;
+			LL_UpdateStatus(HEAD, EXPIRED);
+			HEAD = LL_Next(HEAD);
+			if(LL_GetClass(HEAD) == END_OF_LIST) SYS_Rampdown();
+						
 		}
 		pin5state = 1;			
 	}
@@ -177,7 +178,6 @@ void ADC_Task(void* arg)
 	if((PINE & 0x40) == 0x40) ADCSRA |= (1 << ADSC);
 	else
 	{
-		((itemNode*)STAGE2->node)->adTick = ticks;
 		ticks = 0;
 	}
 
@@ -200,7 +200,6 @@ void MAG_Task(void* arg)
 	{
 		LL_UpdateStatus(STAGE1, INITIALIZED);
 		LL_UpdateMag(STAGE1, 1);
-		((itemNode*)STAGE1->node)->magTick = tick;
 		STAGE1 = LL_Next(STAGE1);
 		
 		tick = 0;
@@ -212,7 +211,6 @@ void MAG_Task(void* arg)
 	{	
 		LL_UpdateStatus(STAGE1, INITIALIZED);
 		LL_UpdateMag(STAGE1, 0);
-		((itemNode*)STAGE2->node)->magTick = tick;
 		STAGE1 = LL_Next(STAGE1);
 		tick = 0;
 		_timer[2].state = BLOCKED;
@@ -231,45 +229,22 @@ void EXIT_Task(void* arg)
 	// Stepper Context
 	static volatile uint8_t position[6] = {100, 0, 50, 150, 100, 100};
 	extern stepperParam stepper;
-
-	// Utility Variables
-	static uint8_t memory = 0;
-	static uint8_t delay = 0;
-
-	// To delay executing the remainder of this task
-	if(memory == 0) delay++;
-
-	uint8_t query = stepper._targetStep - stepper._currentStep;
-
-	if((query < 25) && memory) PWM(0x80);
 	
-	if(stepper.current == position[LL_GetClass(HEAD)])
-	{
-		PWM(0x80);
-		
-		// If the next two items have the same classification
-		// or this is the first item, delay the task.
-		if (delay > 40 || memory)
+	if(stepper.current != position[LL_GetClass(HEAD)]) g_ExitBuffer = 1;
+	
+	if(g_ExitBuffer != 1)
+	{	
+		if(stepper.current == position[LL_GetClass(HEAD)])
 		{
-			memory = 1;
-			delay = 0;
-			if(LL_GetClass(HEAD) == LL_GetClass(HEAD->next)) memory = 0;
-			LL_UpdateStatus(HEAD, EXPIRED);
-			HEAD = LL_Next(HEAD);
-			STEPPER_SetRotation(position[LL_GetClass(HEAD)], position[LL_GetClass(HEAD->next)]);
-			
+			PWM(0x80);
 			// Finished Exit Handling
 			_timer[3].state = BLOCKED;
 		}
+		else
+		{
+			PWM(0);
+		}	
 	}
-	else
-	{
-		PWM(0);
-	}	
-
-	// Rampdown
-	if(LL_GetClass(HEAD) == END_OF_LIST);
-
 } // EXIT_Task
 
 void BTN_Task(void* arg)
@@ -291,33 +266,32 @@ void BTN_Task(void* arg)
 			// Both Buttons : No Function
 			if((PIND & 0x03) == 0x00) 
 			{
-				debounce = 0;
+				//
 			}
 			// Button 1 : Pause System
 			else if ((PIND & 0x03) == 0x01) 
 			{
 				g_PauseRequest = 1;
-				debounce = 0;
 			}
 			// Button 2 : Force Ramp Down 
 			else if ((PIND & 0x03) == 0x02) 
 			{
-				debounce = 0;
+				SYS_Rampdown();
 			}
 			// Spurious
 			else
 			{
-				
-				debounce = 0;
+				//
 			}
 		}
 	}	
+	else debounce = 0;
 } // BTN_Task
 
 void WATCHDOG_Task(void* arg)
 {
 	// If this function runs twice then then no item has triggered an optical sensor for 4 seconds.
-	if(g_WDTimeout > 1) SYS_Pause(__FUNCTION__); 
+	if(g_WDTimeout > 1) SYS_Rampdown(); 
 	g_WDTimeout++;
 }
 

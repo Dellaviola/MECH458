@@ -39,6 +39,7 @@ void SYS_Init()
 	g_PauseRequest = 0;
 	g_WDTimeout = 0;
 	g_Timer = 0;
+	g_ExitBuffer = 0;
 
 	HEAD = NULL;
 	TAIL = NULL;
@@ -71,7 +72,7 @@ void SYS_Init()
 
 } // SYS_Init
 
-void SYS_Pause(char str[20])
+void SYS_Pause(const char str[20])
 {
 	// 
 	/*! 
@@ -103,9 +104,8 @@ void SYS_Pause(char str[20])
 	{
 		char listbuff[100];
 		c++;
-		sprintf(listbuff, "Item: %d, Refl: %u, Mag: %u, Class %u, Status: %u, adT: %u, mT: %u\r\n",
-					 c, LL_GetRefl(temp), LL_GetMag(temp), LL_GetClass(temp), LL_GetStatus(temp),
-					 ((itemNode*)temp->node)->adTick,((itemNode*)temp->node)->magTick);
+		sprintf(listbuff, "Item: %d, Refl: %u, Mag: %u, Class %u, Status: %u\r\n",
+					 c, LL_GetRefl(temp), LL_GetMag(temp), LL_GetClass(temp), LL_GetStatus(temp));
 		UART_SendString(listbuff);
 		temp = LL_Next(temp);	
 	}
@@ -114,7 +114,7 @@ void SYS_Pause(char str[20])
 	for(int i = 0; i < 7; i++)
 	{
 		char statebuff[10];
-		sprintf(statebuff, "FROM: %s\r\nTimer %d State: %u\r\n",str, i, _timer[i].state);
+		sprintf(statebuff, "\r\nTimer %d State: %u\r\n",i, _timer[i].state);
 		UART_SendString(statebuff);
 	}
 
@@ -159,9 +159,8 @@ void SYS_Calibrate(char str[20])
 	{
 		char listbuff[100];
 		c++;
-		sprintf(listbuff, "Item: %d, Refl: %u, Mag: %u, adT: %u, mT: %u\r\n",
-				c, LL_GetRefl(temp), LL_GetMag(temp),
-				((itemNode*)temp->node)->adTick,((itemNode*)temp->node)->magTick);
+		sprintf(listbuff, "Item: %d, Refl: %u, Mag: %u\r\n",
+				c, LL_GetRefl(temp), LL_GetMag(temp));
 		UART_SendString(listbuff);
 		temp = LL_Next(temp);
 	}

@@ -34,6 +34,7 @@ volatile uint8_t g_MotorOn;
 volatile uint8_t g_PauseRequest;
 volatile uint8_t g_WDTimeout;
 volatile uint8_t g_Timer;
+volatile uint8_t g_ExitBuffer;
 /*
         TIMER DEFINES
 */

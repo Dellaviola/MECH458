@@ -32,8 +32,8 @@
 /*-----------------------------------------------------------*/
 
 void SYS_Init(void);
-void SYS_Pause(char[20]);
+void SYS_Pause(const char[20]);
 void SYS_Calibrate(char [20]);
-void SYS_Rampdown();
+void SYS_Rampdown(void);
 
 #endif /* SYS_H_ */
