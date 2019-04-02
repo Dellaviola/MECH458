@@ -280,7 +280,7 @@ void BTN_Task(void* arg)
 	*			Handles button events
 	* \param	Unused
 	*/
-
+	
 	static uint8_t debounce = 0;
 	
 	if (PIND & 0x03)
@@ -371,6 +371,7 @@ void ADD_Task(void* arg)
 	*			Functionality moved to compile time
 	* \param	Unused
 	*/	
+	g_Timer++;
 } // ADD_Task
 
 void STEPPER_Task(void* arg)

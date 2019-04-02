@@ -36,6 +36,9 @@ void SYS_Init()
 	// Intiialize Globals
 	g_ADCCount = 0;
 	memset(g_ADCResult, 0, sizeof(g_ADCResult));
+	g_PauseRequest = 0;
+	g_WDTimeout = 0;
+	g_Timer = 0;
 
 	HEAD = NULL;
 	TAIL = NULL;
@@ -175,3 +178,36 @@ void SYS_Calibrate(char str[20])
 	}
 	return;
 } // SYS_Calibrate
+
+void SYS_Rampdown()
+{
+	//
+	uint8_t sortedStats[5] = {0,0,0,0,0};
+	uint8_t total = 0;
+	
+	char str[50];
+	
+	list* temp = FRONT;
+	
+	cli();
+	PORTD = 0;
+	PORTC = 0;
+	PWM(0);
+	
+	
+	UART_SendString("\r\n\r\n\r\n\r\n\r\n\r\nSystem Ramping Down...\r\n");
+	
+	while(LL_GetStatus(temp) == EXPIRED)
+	{	
+		total++;
+		sortedStats[LL_GetClass(temp)] += 1; 
+		temp = LL_Next(temp);
+	}
+	
+	sprintf(str,"%u Items Sorted!\r\n\r\nBlack: %u/12\tWhite: %u/12\tSteel: %u/12\tAluminum: %u/12\tUnknown Items: %u\r\n\r\n\r\n",
+				total, sortedStats[1], sortedStats[0], sortedStats[3], sortedStats[2], sortedStats[4]);
+	UART_SendString(str);
+	UART_SendString("Total time elapsed since item entered the first stage: ");
+	sprintf(str,"%.2f s\r\n",(double)g_Timer*.25);
+	UART_SendString(str);
+}

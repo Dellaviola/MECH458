@@ -33,6 +33,7 @@ volatile uint16_t g_ADCCount;
 volatile uint8_t g_MotorOn; 
 volatile uint8_t g_PauseRequest;
 volatile uint8_t g_WDTimeout;
+volatile uint8_t g_Timer;
 /*
         TIMER DEFINES
 */
