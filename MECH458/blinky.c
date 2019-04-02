@@ -230,20 +230,19 @@ void EXIT_Task(void* arg)
 	static volatile uint8_t position[6] = {100, 0, 50, 150, 100, 100};
 	extern stepperParam stepper;
 	
-	if(stepper.current != position[LL_GetClass(HEAD)]) g_ExitBuffer = 1;
-	
 	if(g_ExitBuffer != 1)
 	{	
 		if(stepper.current == position[LL_GetClass(HEAD)])
 		{
 			PWM(0x80);
-			// Finished Exit Handling
-			_timer[3].state = BLOCKED;
 		}
 		else
 		{
+			g_ExitBuffer = 1;
 			PWM(0);
 		}	
+		// Finish checking
+		_timer[3].state = BLOCKED;
 	}
 } // EXIT_Task
 

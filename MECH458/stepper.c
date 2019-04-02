@@ -129,7 +129,7 @@ ISR(TIMER2_COMPA_vect)
 		OCR2A = accell[stepper._accellStep];
 		PORTA = (!stepper._willContinue) ? PORTA : PORTA;
 		g_ExitBuffer = 0;
-		STEPPER_SetRotation(step[LL_GetClass(HEAD->prev)], step[LL_GetClass(HEAD)]);
+		if(HEAD && HEAD->prev) STEPPER_SetRotation(step[LL_GetClass(HEAD)], step[LL_GetClass(HEAD->next)]);
 	}
 	if (stepper._isInitiated == 0)
 	{
