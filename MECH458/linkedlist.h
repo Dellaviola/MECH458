@@ -48,7 +48,9 @@ typedef enum status_e
 typedef struct itemNode_s
 {
 	uint16_t reflect;
+	uint8_t adTick;
 	uint8_t magnet;
+	uint8_t magTick;
 	eclassification class;
 	estatus status;
 }itemNode;

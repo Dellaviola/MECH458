@@ -48,6 +48,7 @@ void EXECACQ()
 	
 		//UART_SendString("System Ready...\r\n");
 		PWM(0x80);
+
  		PORTC = 0xFE;
 // 		g_ADCCount = 0;
 // 		ADCSRA |= (1 << ADEN);
@@ -61,6 +62,7 @@ void EXECACQ()
 	//HEAD = LL_ItemListInit(fakeItem);
 // 	ADCSRA = (1 << ADEN);
 // 	ADCSRA = (1 << ADSC);
+		int c = 0;
 	// Put IDLE operations in infinite loop
 	cli();
 	while (1)
@@ -138,6 +140,15 @@ void EXECACQ()
 // 				 SYS_Pause(__FUNCTION__);
 // 			}
 			//PORTC = 0xFF;
+			
+			if ((PINE & 0x20) == 0) c++;
+			if (((PINE & 0x20) == 0x20) && (c))
+			{
+				PWM(0);
+				char buffy[10];
+				sprintf(buffy, "%u\r\n",c);
+				UART_SendString(buffy);
+			}
 			
 			
 			//PORTC ^= 0xFE;

@@ -36,7 +36,6 @@ void SERVER_Task(void* arg)
 	static uint8_t pin7state = 1;
 	static uint8_t pin6state = 1;
 	static uint8_t pin5state = 1;
-	
 	// E7 : O1 (Enter)
 	if((PINE & 0x80) == 0) 
 	{
@@ -74,6 +73,7 @@ void SERVER_Task(void* arg)
 			// g_PauseRequest = 1;
 			_timer[3].state = READY;
 			g_WDTimeout = 0;
+			PORTC = 0xFF;
 		}
 		pin5state = 0;
 	}
@@ -118,6 +118,7 @@ void SERVER_Task(void* arg)
 		if(!pin5state)
 		{
 			// Nothing happens here
+			PORTC = 0x00;
 		}
 		pin5state = 1;			
 	}
@@ -138,6 +139,8 @@ void ADC_Task(void* arg)
 	
 	uint16_t max = g_ADCResult[0];
 	uint16_t min = g_ADCResult[0];
+	static uint8_t ticks = 0;
+	ticks++;
 	
 	// Averaging
 	// Use atomic blocks to prevent interrupts while writing to multi-byte data
@@ -172,6 +175,11 @@ void ADC_Task(void* arg)
 
 	// Restart ADC
 	if((PINE & 0x40) == 0x40) ADCSRA |= (1 << ADSC);
+	else
+	{
+		((itemNode*)STAGE2->node)->adTick = ticks;
+		ticks = 0;
+	}
 
 } // ADC_Task
 
@@ -183,28 +191,31 @@ void MAG_Task(void* arg)
 	*			If belt is moving a magnetic item will be detected within 30 cycles
 	* \param	Unused
 	*/
-	static uint8_t tick = 0;	
-	if (g_MotorOn) tick++;
-
+	volatile static uint8_t tick = 0;	
+	//if (g_MotorOn) tick++;
+	tick++;
+	
 	// If the item is magnetic
 	if((PINE & 0x10) == 0)
 	{
 		LL_UpdateStatus(STAGE1, INITIALIZED);
 		LL_UpdateMag(STAGE1, 1);
+		((itemNode*)STAGE1->node)->magTick = tick;
 		STAGE1 = LL_Next(STAGE1);
 		
-		_timer[2].state = BLOCKED;
 		tick = 0;
+		_timer[2].state = BLOCKED;
+
 	}
 	// If the item is not magnetic
-	else if(tick > 30)
+	else if(tick > 60)
 	{	
 		LL_UpdateStatus(STAGE1, INITIALIZED);
 		LL_UpdateMag(STAGE1, 0);
+		((itemNode*)STAGE2->node)->magTick = tick;
 		STAGE1 = LL_Next(STAGE1);
-		
-		_timer[2].state = BLOCKED;
 		tick = 0;
+		_timer[2].state = BLOCKED;
 	}
 } // MAG_Task
 
@@ -230,7 +241,7 @@ void EXIT_Task(void* arg)
 
 	uint8_t query = stepper._targetStep - stepper._currentStep;
 
-	if((query < 15) && memory) PWM(0x80);
+	if((query < 25) && memory) PWM(0x80);
 	
 	if(stepper.current == position[LL_GetClass(HEAD)])
 	{
@@ -238,7 +249,7 @@ void EXIT_Task(void* arg)
 		
 		// If the next two items have the same classification
 		// or this is the first item, delay the task.
-		if (delay > 20 || memory)
+		if (delay > 40 || memory)
 		{
 			memory = 1;
 			delay = 0;

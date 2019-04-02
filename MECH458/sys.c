@@ -98,9 +98,11 @@ void SYS_Pause(char str[20])
 	// Print List Information
 	while (LL_GetClass(temp) != END_OF_LIST)
 	{
-		char listbuff[50];
+		char listbuff[100];
 		c++;
-		sprintf(listbuff, "Item: %d, Refl: %u, Mag: %u, Class %u, Status: %u\r\n", c, LL_GetRefl(temp), LL_GetMag(temp), LL_GetClass(temp), LL_GetStatus(temp));
+		sprintf(listbuff, "Item: %d, Refl: %u, Mag: %u, Class %u, Status: %u, adT: %u, mT: %u\r\n",
+					 c, LL_GetRefl(temp), LL_GetMag(temp), LL_GetClass(temp), LL_GetStatus(temp),
+					 ((itemNode*)temp->node)->adTick,((itemNode*)temp->node)->magTick);
 		UART_SendString(listbuff);
 		temp = LL_Next(temp);	
 	}
@@ -132,7 +134,7 @@ void SYS_Pause(char str[20])
 	}
 } // SYS_Pause
 
-void SYS_Calibrate()
+void SYS_Calibrate(char str[20])
 {
 	//
 	cli();
@@ -147,12 +149,16 @@ void SYS_Calibrate()
 	int c = 0;
 	//while (temp->prev) temp = LL_Prev(temp);
 	
+	UART_SendString(str);
+
+	
 	while (LL_GetStatus(temp) != UNINITIALIZED)
 	{
-		PORTC = 0xFF;
-		char listbuff[50];
+		char listbuff[100];
 		c++;
-		sprintf(listbuff, "Item: %d, Refl: %u, Mag: %u, Class %u, Status: %u\r\n", c, LL_GetRefl(temp), LL_GetMag(temp), LL_GetClass(temp), LL_GetStatus(temp));
+		sprintf(listbuff, "Item: %d, Refl: %u, Mag: %u, adT: %u, mT: %u\r\n",
+				c, LL_GetRefl(temp), LL_GetMag(temp),
+				((itemNode*)temp->node)->adTick,((itemNode*)temp->node)->magTick);
 		UART_SendString(listbuff);
 		temp = LL_Next(temp);
 	}

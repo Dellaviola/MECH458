@@ -43,19 +43,19 @@
 #define CALIBMODE 0
 
 // Configure boundaries
-const uint16_t BLACK_BOUNDARY_HIGH = 931;
-const uint16_t BLACK_BOUNDARY_LOW = 886;
+const uint16_t BLACK_BOUNDARY_HIGH = 950;
+const uint16_t BLACK_BOUNDARY_LOW = 800;
 
-const uint16_t WHITE_BOUNDARY_HIGH = 874;
-const uint16_t WHITE_BOUNDARY_LOW = 827;
+const uint16_t WHITE_BOUNDARY_HIGH = 915;
+const uint16_t WHITE_BOUNDARY_LOW = 905;
 
 const uint16_t STEEL_BOUNDARY_HIGH = 650;
-const uint16_t STEEL_BOUNDARY_LOW = 299;
+const uint16_t STEEL_BOUNDARY_LOW = 300;
 
 const uint16_t ALUMINUM_BOUNDARY_HIGH = 100;
 const uint16_t ALUMINUM_BOUNDARY_LOW = 20;
 
-const uint8_t BELT_SPEED = 255;
+const uint8_t BELT_SPEED = 100;
 
 // Make sure to use the correct lists
 extern list* HEAD;
@@ -144,7 +144,7 @@ int main(void)
 	while (1)
 	{	
 		// Check for pause request	
-		if(g_PauseRequest) SYS_Pause(__FUNCTION__);
+		if(g_PauseRequest) SYS_Calibrate("SET\r\n");
 
 		list* temp = HEAD;
 		uint16_t reflVal; 
@@ -173,17 +173,21 @@ int main(void)
 						// Unknown Magnetic Object
 					}
 				}
-				else if((reflVal >= BLACK_BOUNDARY_LOW) && (reflVal <= BLACK_BOUNDARY_HIGH))
-				{
-					LL_UpdateClass(temp, BLACK);
-				}
 				else if((reflVal >= WHITE_BOUNDARY_LOW) && (reflVal <= WHITE_BOUNDARY_HIGH))
 				{
 					LL_UpdateClass(temp, WHITE);
 				}
+				else if((reflVal >= BLACK_BOUNDARY_LOW) && (reflVal <= BLACK_BOUNDARY_HIGH))
+				{
+					LL_UpdateClass(temp, BLACK);
+				}
 				else
 				{
-					// Unknown non-magnetic object
+					// Unknown non-magnetic object might be aluminum
+					if((reflVal >= ALUMINUM_BOUNDARY_LOW) && (reflVal <= ALUMINUM_BOUNDARY_HIGH))
+					{
+						LL_UpdateClass(temp, ALUMINUM);
+					}
 				}
 				if(memory == 0)
 				{

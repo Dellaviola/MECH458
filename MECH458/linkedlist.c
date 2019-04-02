@@ -24,6 +24,8 @@ itemNode* LL_ItemInit(uint16_t reflVal, uint8_t magVal, eclassification class, e
 	newItem->magnet = magVal;
 	newItem->class = class;
 	newItem->status = status;
+	newItem->adTick = 0;
+	newItem->magTick = 0;
 	return newItem;
 }
 timerNode* LL_TimerInit(uint16_t timeout_ms, int periodic, void (*callback)(void *), void *arg, uint8_t priority)
