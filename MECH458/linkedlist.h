@@ -51,6 +51,7 @@ typedef struct itemNode_s
 	uint8_t magnet;
 	eclassification class;
 	estatus status;
+	uint16_t lastTick;
 }itemNode;
 typedef struct timerNode_s
 {
@@ -129,6 +130,6 @@ void LL_UpdateRefl(list*, uint16_t);
 void LL_UpdateMag(list*, uint8_t);
 void LL_UpdateClass(list*,eclassification);
 void LL_UpdateStatus(list*, estatus);
-
-
+void LL_UpdateTick(list*, uint16_t);
+uint16_t LL_GetTick(list* ref);
 #endif /* LINKEDLIST_H_ */

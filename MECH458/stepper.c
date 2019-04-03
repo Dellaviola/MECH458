@@ -34,6 +34,7 @@ void STEPPER_Init()
 	stepper.next = 0;
 	stepper._isInitiated = 0;
 	stepper._accellStep = 0;
+	stepper._willContinue = 1;
 
 	// For calibration
 	stepper._targetStep = 200;
@@ -109,11 +110,6 @@ ISR(TIMER2_COMPA_vect)
 		stepper._stepNum = (stepper._stepNum == 3) ? 0 : (stepper._stepNum + 1);
 
 		stepper._currentStep++;
-		if((LL_GetStatus(HEAD) != UNINITIALIZED) && ((stepper._targetStep - stepper._currentStep) < 15)) 
-		{
-			PWM(1);
-			g_ExitBuffer = 0;
-		}
 		//Simple acceleration / deceleration block uses curve defined in accel
 		if (((stepper._targetStep - stepper._currentStep) <= 5) && (accell[stepper._accellStep] < 0x94))
 		{
@@ -133,13 +129,23 @@ ISR(TIMER2_COMPA_vect)
 		stepper._accellStep = (stepper._willContinue) ? stepper._accellStep : 0;
 		OCR2A = accell[stepper._accellStep];
 		PORTA = (!stepper._willContinue) ? PORTA : PORTA;
-		//if(HEAD->prev) STEPPER_SetRotation(position[LL_GetClass(HEAD->prev)], position[LL_GetClass(HEAD)]);
+
 	}
 	if (stepper._isInitiated == 0)
 	{
 		if ((PINE & 0x08) == 0)
 		{
 			//Reset the values when the hall sensor fires for the first time
+			
+			for (int i = 0; i < 5; i++)
+			{
+				PORTA = (stepper.direction == CW) ? (step[stepper._stepNum]) : (step[3 - stepper._stepNum]);
+				stepper._stepNum = (stepper._stepNum == 3) ? 0 : (stepper._stepNum + 1);
+
+				stepper._currentStep++;
+			}
+			
+			
 			stepper._isInitiated = 1;
 			stepper._stepNum = 0;
 			stepper.direction = 1;

@@ -44,6 +44,7 @@ typedef struct timer
 /*-----------------------------------------------------------*/
 
 timer _timer[MAX_TIMERS];
+volatile uint16_t _timer_tick;
 void TIMER_Init(void);
 int TIMER_Create(uint16_t, int, void (*callback)(void *) , void *);
 int TIMER_Delete(int);

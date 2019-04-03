@@ -55,7 +55,8 @@ const uint16_t STEEL_BOUNDARY_LOW = 300;
 const uint16_t ALUMINUM_BOUNDARY_HIGH = 100;
 const uint16_t ALUMINUM_BOUNDARY_LOW = 20;
 
-const uint8_t BELT_SPEED = 100;
+const uint16_t STAGE2_DELAY_COUNT = 2000;
+const uint16_t DROP_DELAY_COUNT = 200;
 
 // Make sure to use the correct lists
 extern list* HEAD;
@@ -120,7 +121,7 @@ int main(void)
 		TIMER_Create(1, 1, EXIT_Task, NULL);		// Item Exit Handling
 		_timer[3].state = BLOCKED;
 		
-		TIMER_Create(943, 1, ADD_Task, NULL);		// Item Enter Handling
+		TIMER_Create(2, 1, ADD_Task, NULL);		// Item Enter Handling
 		_timer[4].state = BLOCKED;
 		
 		TIMER_Create(100, 1, BTN_Task, NULL);		// Button Handling
@@ -145,6 +146,24 @@ int main(void)
 	{	
 		// Check for pause request	
 		if(g_PauseRequest) SYS_Pause(__FUNCTION__);
+		if(g_MotorOn)
+		{
+			if((g_MotorTicks - LL_GetTick(HEAD)) < STAGE2_DELAY_COUNT)
+			{
+				BELT_SPEED = 200;
+				PWM(1);
+			}
+			else 
+			{
+				BELT_SPEED = 100;
+				PWM(1);
+			}
+		}
+		if((g_MotorTicks - LL_GetTick(HEAD) > 10000))
+		{
+			// Item Missing
+			SYS_Pause("!!!Item Missing!!!\r\n")
+		}
 
 		list* temp = HEAD;
 		uint16_t reflVal; 

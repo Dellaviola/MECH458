@@ -24,8 +24,9 @@
 
 // Setting Declarations
 
-const uint8_t BELT_SPEED;
-
+volatile uint8_t BELT_SPEED;
+const uint16_t STAGE2_DELAY_COUNT;
+const uint16_t DROP_DELAY_COUNT;
 
 // Globals
 volatile uint16_t g_ADCResult[10];
@@ -34,7 +35,7 @@ volatile uint8_t g_MotorOn;
 volatile uint8_t g_PauseRequest;
 volatile uint8_t g_WDTimeout;
 volatile uint8_t g_Timer;
-volatile uint8_t g_ExitBuffer;
+volatile uint8_t g_MotorTicks;
 /*
         TIMER DEFINES
 */

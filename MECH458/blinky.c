@@ -59,6 +59,7 @@ void SERVER_Task(void* arg)
 		{
 			// Item is sortable
 			LL_UpdateStatus(STAGE2, SORTABLE);
+			LL_UpdateTick(STAGE2, g_Timer);
 			g_WDTimeout = 0;
 		}
 		pin6state = 0;
@@ -85,6 +86,7 @@ void SERVER_Task(void* arg)
 		{
 			// Unblock MAG_Task and Watchdog Timer
 			_timer[2].state = READY;
+			_timer[4].state = READY;
 			_timer[7].state = READY;	
 		}
 		pin7state = 1;
@@ -191,9 +193,8 @@ void MAG_Task(void* arg)
 	* \param	Unused
 	*/
 	volatile static uint8_t tick = 0;	
-	//if (g_MotorOn) tick++;
-	tick++;
-	
+	if (g_MotorOn) tick++;
+		
 	// If the item is magnetic
 	if((PINE & 0x10) == 0)
 	{
@@ -228,23 +229,58 @@ void EXIT_Task(void* arg)
 	// Stepper Context
 	static volatile uint8_t position[6] = {100, 0, 50, 150, 100, 100};
 	extern stepperParam stepper;
-	
-	if(g_ExitBuffer != 1)
-	{	
-		if(stepper.current == position[LL_GetClass(HEAD)])
-		{
-			STEPPER_SetRotation(position[LL_GetClass(HEAD)], position[LL_GetClass(HEAD->next)]);
-			LL_UpdateStatus(HEAD, EXPIRED);
-			HEAD = LL_Next(HEAD);
-			_timer[3].state = BLOCKED;
-		}
-		else
-		{
-			g_ExitBuffer = 1;
-			PWM(0);
-		}	
-		// Finish checking
+
+	// Utility Variables
+	static uint8_t memory = 0;
+	static uint8_t delay = 0;
+
+
+	// Check Ticks
+	if (((g_MotorTicks - LL_GetTick(HEAD)) < STAGE2_DELAY_COUNT))
+	{
+		// Item arrived too early
+		_timer[3].state = BLOCKED;
+		 return;
 	}
+	if (LL_GetClass(HEAD) == UNCLASSIFIED)
+	{
+		 g_PauseRequest = 1;
+		 _timer[3].state = BLOCKED;
+		 return;
+	}
+	
+	if ((g_MotorTicks - LL_GetTick(HEAD->prev)) < DROP_DELAY_COUNT)
+	{
+		//Item dropped too recently
+		return;
+	}
+
+	uint8_t query = stepper._targetStep - stepper._currentStep;
+
+	if(query < 13) PWM(1);
+	
+	if(stepper.current == position[LL_GetClass(HEAD)])
+	{
+		//PWM(1);
+		
+		// If the next two items have the same classification
+		// or this is the first item, delay the task.
+		if(LL_GetClass(HEAD) == LL_GetClass(HEAD->next)) memory = 0;
+		LL_UpdateStatus(HEAD, EXPIRED);
+		HEAD = LL_Next(HEAD);
+		STEPPER_SetRotation(position[LL_GetClass(HEAD)], position[LL_GetClass(HEAD->next)]);
+			
+		// Finished Exit Handling
+		_timer[3].state = BLOCKED;
+	}
+	else
+	{
+		PWM(0);
+	}	
+
+	// Rampdown
+	if(LL_GetClass(HEAD) == END_OF_LIST);
+
 } // EXIT_Task
 
 void BTN_Task(void* arg)
@@ -345,7 +381,7 @@ void ADD_Task(void* arg)
 	*			Functionality moved to compile time
 	* \param	Unused
 	*/	
-	g_Timer++;
+	if(g_MotorOn) g_Timer++;
 } // ADD_Task
 
 void STEPPER_Task(void* arg)

@@ -10,7 +10,7 @@ timer function implementations.
 
 /*-----------------------------------------------------------*/
 
-static volatile uint16_t _timer_tick = 0;
+volatile uint16_t _timer_tick = 0;
 
 ISR (TIMER1_COMPA_vect)    // Timer1 ISR
 {

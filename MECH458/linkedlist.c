@@ -24,6 +24,7 @@ itemNode* LL_ItemInit(uint16_t reflVal, uint8_t magVal, eclassification class, e
 	newItem->magnet = magVal;
 	newItem->class = class;
 	newItem->status = status;
+	newItem->lastTick = 0;
 	return newItem;
 }
 timerNode* LL_TimerInit(uint16_t timeout_ms, int periodic, void (*callback)(void *), void *arg, uint8_t priority)
@@ -237,4 +238,17 @@ estatus LL_GetStatus(list* ref)
 {
 	//
 	return ((itemNode*)ref->node)->status;
+}
+
+void LL_UpdateTick(list* ref, uint16_t newTick)
+{
+	//
+	((itemNode*)ref->node)->lastTick = newTick;
+	return;
+}
+
+uint16_t LL_GetTick(list* ref)
+{
+	//
+	return ((itemNode*)ref->node)->lastTick;
 }

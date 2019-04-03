@@ -39,7 +39,8 @@ void SYS_Init()
 	g_PauseRequest = 0;
 	g_WDTimeout = 0;
 	g_Timer = 0;
-	g_ExitBuffer = 0;
+	g_MotorTicks = 0;
+	BELT_SPEED = 200;
 
 	HEAD = NULL;
 	TAIL = NULL;
@@ -206,7 +207,5 @@ void SYS_Rampdown()
 	sprintf(str,"%u Items Sorted!\r\n\r\nBlack: %u/12\tWhite: %u/12\tSteel: %u/12\tAluminum: %u/12\tUnknown Items: %u\r\n",
 				total, sortedStats[1], sortedStats[0], sortedStats[3], sortedStats[2], sortedStats[4]);
 	UART_SendString(str);
-	UART_SendString("Total time elapsed since item entered the first stage: ");
-	sprintf(str,"%.2f s\r\n",g_Timer*.25);
-	UART_SendString(str);
+	SYS_Calibrate("Get Calibration Stats:");
 }
