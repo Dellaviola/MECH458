@@ -56,7 +56,8 @@ const uint16_t ALUMINUM_BOUNDARY_HIGH = 100;
 const uint16_t ALUMINUM_BOUNDARY_LOW = 20;
 
 const uint16_t STAGE2_DELAY_COUNT = 2000;
-const uint16_t DROP_DELAY_COUNT = 200;
+const uint16_t DROP_DELAY_COUNT = 50;
+const uint16_t ITEM_MISSING_COUNT = 10000;
 
 // Make sure to use the correct lists
 extern list* HEAD;
@@ -154,15 +155,15 @@ int main(void)
 				PWM(1);
 			}
 			else 
-			{
-				BELT_SPEED = 100;
+			{   
+				if(LL_GetClass(HEAD->prev) != LL_GetClass(HEAD)) BELT_SPEED = 100;
 				PWM(1);
 			}
 		}
-		if((g_MotorTicks - LL_GetTick(HEAD) > 10000))
+		if((g_MotorTicks - LL_GetTick(HEAD) > ITEM_MISSING_COUNT))
 		{
 			// Item Missing
-			SYS_Pause("!!!Item Missing!!!\r\n")
+			SYS_Pause("!!!Item Missing!!!\r\n");
 		}
 
 		list* temp = HEAD;

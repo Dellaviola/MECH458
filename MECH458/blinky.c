@@ -230,11 +230,6 @@ void EXIT_Task(void* arg)
 	static volatile uint8_t position[6] = {100, 0, 50, 150, 100, 100};
 	extern stepperParam stepper;
 
-	// Utility Variables
-	static uint8_t memory = 0;
-	static uint8_t delay = 0;
-
-
 	// Check Ticks
 	if (((g_MotorTicks - LL_GetTick(HEAD)) < STAGE2_DELAY_COUNT))
 	{
@@ -265,10 +260,11 @@ void EXIT_Task(void* arg)
 		
 		// If the next two items have the same classification
 		// or this is the first item, delay the task.
-		if(LL_GetClass(HEAD) == LL_GetClass(HEAD->next)) memory = 0;
+		if(LL_GetClass(HEAD) == LL_GetClass(HEAD->next)) BELT_SPEED = 200;
 		LL_UpdateStatus(HEAD, EXPIRED);
 		HEAD = LL_Next(HEAD);
 		STEPPER_SetRotation(position[LL_GetClass(HEAD)], position[LL_GetClass(HEAD->next)]);
+		PWM(1);
 			
 		// Finished Exit Handling
 		_timer[3].state = BLOCKED;
