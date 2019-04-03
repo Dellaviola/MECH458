@@ -18,6 +18,7 @@
 #define CCW 0x08
 
 volatile uint8_t accell[6] = {0x94, 0x7D, 0x66, 0x50, 0x43, 0x40};
+static volatile uint8_t position[6] = {100, 0, 50, 150, 100, 100};
 
 //TODO; Write spin down
 
@@ -108,7 +109,11 @@ ISR(TIMER2_COMPA_vect)
 		stepper._stepNum = (stepper._stepNum == 3) ? 0 : (stepper._stepNum + 1);
 
 		stepper._currentStep++;
-		if((stepper._targetStep - stepper._currentStep) < 15) PWM(1); 
+		if((LL_GetStatus(HEAD) != UNINITIALIZED) && ((stepper._targetStep - stepper._currentStep) < 15)) 
+		{
+			PWM(1);
+			g_ExitBuffer = 0;
+		}
 		//Simple acceleration / deceleration block uses curve defined in accel
 		if (((stepper._targetStep - stepper._currentStep) <= 5) && (accell[stepper._accellStep] < 0x94))
 		{
@@ -128,8 +133,7 @@ ISR(TIMER2_COMPA_vect)
 		stepper._accellStep = (stepper._willContinue) ? stepper._accellStep : 0;
 		OCR2A = accell[stepper._accellStep];
 		PORTA = (!stepper._willContinue) ? PORTA : PORTA;
-		g_ExitBuffer = 0;
-		if(HEAD && HEAD->prev) STEPPER_SetRotation(step[LL_GetClass(HEAD)], step[LL_GetClass(HEAD->next)]);
+		//if(HEAD->prev) STEPPER_SetRotation(position[LL_GetClass(HEAD->prev)], position[LL_GetClass(HEAD)]);
 	}
 	if (stepper._isInitiated == 0)
 	{

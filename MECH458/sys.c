@@ -181,7 +181,7 @@ void SYS_Calibrate(char str[20])
 void SYS_Rampdown()
 {
 	//
-	uint8_t sortedStats[5] = {0,0,0,0,0};
+	uint8_t sortedStats[6] = {0,0,0,0,0,0};
 	uint8_t total = 0;
 	
 	char str[50];
@@ -203,10 +203,10 @@ void SYS_Rampdown()
 		temp = LL_Next(temp);
 	}
 	
-	sprintf(str,"%u Items Sorted!\r\n\r\nBlack: %u/12\tWhite: %u/12\tSteel: %u/12\tAluminum: %u/12\tUnknown Items: %u\r\n\r\n\r\n",
+	sprintf(str,"%u Items Sorted!\r\n\r\nBlack: %u/12\tWhite: %u/12\tSteel: %u/12\tAluminum: %u/12\tUnknown Items: %u\r\n",
 				total, sortedStats[1], sortedStats[0], sortedStats[3], sortedStats[2], sortedStats[4]);
 	UART_SendString(str);
 	UART_SendString("Total time elapsed since item entered the first stage: ");
-	sprintf(str,"%.2f s\r\n",(double)g_Timer*.25);
+	sprintf(str,"%.2f s\r\n",g_Timer*.25);
 	UART_SendString(str);
 }

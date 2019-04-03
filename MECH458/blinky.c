@@ -116,8 +116,7 @@ void SERVER_Task(void* arg)
 		// Transition Detected O3 Low -> High : Item Exits System
 		if(!pin5state)
 		{
-			LL_UpdateStatus(HEAD, EXPIRED);
-			HEAD = LL_Next(HEAD);
+
 			if(LL_GetClass(HEAD) == END_OF_LIST) SYS_Rampdown();
 						
 		}
@@ -234,7 +233,10 @@ void EXIT_Task(void* arg)
 	{	
 		if(stepper.current == position[LL_GetClass(HEAD)])
 		{
-			PWM(0x80);
+			STEPPER_SetRotation(position[LL_GetClass(HEAD)], position[LL_GetClass(HEAD->next)]);
+			LL_UpdateStatus(HEAD, EXPIRED);
+			HEAD = LL_Next(HEAD);
+			_timer[3].state = BLOCKED;
 		}
 		else
 		{
@@ -242,7 +244,6 @@ void EXIT_Task(void* arg)
 			PWM(0);
 		}	
 		// Finish checking
-		_timer[3].state = BLOCKED;
 	}
 } // EXIT_Task
 
