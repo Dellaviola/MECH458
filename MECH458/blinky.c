@@ -19,7 +19,10 @@ extern list* STAGE1;
 extern list* STAGE2;
 extern list* TAIL;
 extern list* FRONT;
+extern list* BUFFER;
 
+static volatile uint8_t position[6] = {100, 0, 50, 150, 100, 100};
+extern stepperParam stepper;
 /*-----------------------------------------------------------*/
 /* 					Scheduler Functions 					 */
 
@@ -36,6 +39,17 @@ void SERVER_Task(void* arg)
 	static uint8_t pin7state = 1;
 	static uint8_t pin6state = 1;
 	static uint8_t pin5state = 1;
+	static uint8_t memory = 0;
+// 	
+// 	if(BUFFER != HEAD)
+// 	{
+// 		if(position[LL_GetClass(BUFFER)] == stepper.current)
+// 		{
+// 			BUFFER = LL_Next(BUFFER);
+// 			if (LL_GetClass(BUFFER->prev) == LL_GetClass(BUFFER)) LL_Next(BUFFER);
+// 			STEPPER_SetRotation(position[LL_GetClass(BUFFER)], position[LL_GetClass(BUFFER->next)]);
+// 		}	
+// 	}
 
 	// E7 : O1 (Enter)
 	if((PINE & 0x80) == 0) 
@@ -59,7 +73,6 @@ void SERVER_Task(void* arg)
 		{
 			// Item is sortable
 			LL_UpdateStatus(STAGE2, SORTABLE);
-			LL_UpdateTick(STAGE2, g_Timer);
 			g_WDTimeout = 0;
 		}
 		pin6state = 0;
@@ -72,6 +85,7 @@ void SERVER_Task(void* arg)
 		if(pin5state)
 		{
 			// Unblock EXIT_Task
+			//g_PauseRequest = 1;
 			_timer[3].state = READY;
 			g_WDTimeout = 0;
 		}
@@ -102,11 +116,13 @@ void SERVER_Task(void* arg)
 			{
 				// First Item enters stage 2
 				STAGE2 = HEAD; 
+				LL_UpdateTick(STAGE2, g_Timer);
 			}
 			else
 			{
 				// Increment stage 2
 				STAGE2 = LL_Next(STAGE2); 
+				LL_UpdateTick(STAGE2, g_Timer);
 			}
 			ADCSRA |= (1 << ADSC);
 		}
@@ -123,6 +139,11 @@ void SERVER_Task(void* arg)
 						
 		}
 		pin5state = 1;			
+	}
+	if ((memory == 0) && (LL_GetClass(HEAD) != UNCLASSIFIED) && (LL_GetClass(HEAD->next) != UNCLASSIFIED))
+	{
+		memory = 1;
+		STEPPER_SetRotation(position[LL_GetClass(HEAD)], position[LL_GetClass(HEAD->next)]);
 	}
 } // SERVER_Task
 
@@ -207,7 +228,7 @@ void MAG_Task(void* arg)
 
 	}
 	// If the item is not magnetic
-	else if(tick > 60)
+	else if(tick > 50)
 	{	
 		LL_UpdateStatus(STAGE1, INITIALIZED);
 		LL_UpdateMag(STAGE1, 0);
@@ -227,53 +248,56 @@ void EXIT_Task(void* arg)
 	*/
 	
 	// Stepper Context
-	static volatile uint8_t position[6] = {100, 0, 50, 150, 100, 100};
-	extern stepperParam stepper;
+	static uint16_t lastItemTick = 0;
 
 	// Check Ticks
-	if (((g_MotorTicks - LL_GetTick(HEAD)) < STAGE2_DELAY_COUNT))
-	{
-		// Item arrived too early
-		_timer[3].state = BLOCKED;
-		 return;
-	}
-	if (LL_GetClass(HEAD) == UNCLASSIFIED)
-	{
-		 g_PauseRequest = 1;
-		 _timer[3].state = BLOCKED;
-		 return;
-	}
+// 	if (((g_Timer - LL_GetTick(HEAD)) < STAGE2_DELAY_COUNT))
+// 	{
+// 		// Item arrived too early
+// 		_timer[3].state = BLOCKED;
+// 		 return;
+// 	}
+// 	if (LL_GetClass(HEAD) == UNCLASSIFIED)
+// 	{
+// 		 g_PauseRequest = 1;
+// 		 _timer[3].state = BLOCKED;
+// 		 return;
+// 	}
+// 	
+// 	if ((g_Timer - LL_GetTick(HEAD->prev)) < DROP_DELAY_COUNT)
+// 	{
+// 		//Item dropped too recently
+// 		return;
+// 	}
 	
-	if ((g_MotorTicks - LL_GetTick(HEAD->prev)) < DROP_DELAY_COUNT)
+	if((((stepper._targetStep - stepper._currentStep) < 15) && (stepper.early == 0)) || (LL_GetClass(HEAD) == LL_GetClass(HEAD->next)))
 	{
-		//Item dropped too recently
-		return;
-	}
-
-	uint8_t query = stepper._targetStep - stepper._currentStep;
-
-	if(query < 13) PWM(1);
-	
-	if(stepper.current == position[LL_GetClass(HEAD)])
-	{
-		//PWM(1);
-		
-		// If the next two items have the same classification
-		// or this is the first item, delay the task.
-		if(LL_GetClass(HEAD) == LL_GetClass(HEAD->next)) BELT_SPEED = 200;
-		LL_UpdateStatus(HEAD, EXPIRED);
+		LL_UpdateStatus(HEAD,EXPIRED);
 		HEAD = LL_Next(HEAD);
-		STEPPER_SetRotation(position[LL_GetClass(HEAD)], position[LL_GetClass(HEAD->next)]);
+		if(LL_GetClass(HEAD) == LL_GetClass(HEAD->next))
+		{
+			BELT_SPEED = 150;
+		}
+		else
+		{
+			BELT_SPEED = 100;
+			STEPPER_SetRotation(position[LL_GetClass(HEAD)], position[LL_GetClass(HEAD->next)]);
+		}
 		PWM(1);
-			
-		// Finished Exit Handling
 		_timer[3].state = BLOCKED;
 	}
-	else
+	else 
 	{
 		PWM(0);
-	}	
+		g_Lock = 1;
+	}
 
+
+	
+	/* BUGS:
+				STEPPER WILL CONTINUE if there is a gap between pieces stepper will stutter.
+				
+	*/
 	// Rampdown
 	if(LL_GetClass(HEAD) == END_OF_LIST);
 
@@ -308,7 +332,7 @@ void BTN_Task(void* arg)
 			// Button 2 : Force Ramp Down 
 			else if ((PIND & 0x03) == 0x02) 
 			{
-				SYS_Rampdown();
+				_timer[4].state = READY;
 			}
 			// Spurious
 			else
@@ -323,7 +347,7 @@ void BTN_Task(void* arg)
 void WATCHDOG_Task(void* arg)
 {
 	// If this function runs twice then then no item has triggered an optical sensor for 4 seconds.
-	if(g_WDTimeout > 1) SYS_Rampdown(); 
+	if(g_WDTimeout > 1) SYS_Pause(__FUNCTION__);//SYS_Rampdown(); 
 	g_WDTimeout++;
 }
 
@@ -378,6 +402,7 @@ void ADD_Task(void* arg)
 	* \param	Unused
 	*/	
 	if(g_MotorOn) g_Timer++;
+	return;
 } // ADD_Task
 
 void STEPPER_Task(void* arg)

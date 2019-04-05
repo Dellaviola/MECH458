@@ -27,6 +27,8 @@
 volatile uint8_t BELT_SPEED;
 const uint16_t STAGE2_DELAY_COUNT;
 const uint16_t DROP_DELAY_COUNT;
+const uint8_t STEPPER_OFFSET;
+const uint8_t STEPPER_REVERSE;
 
 // Globals
 volatile uint16_t g_ADCResult[10];
@@ -34,8 +36,11 @@ volatile uint16_t g_ADCCount;
 volatile uint8_t g_MotorOn; 
 volatile uint8_t g_PauseRequest;
 volatile uint8_t g_WDTimeout;
-volatile uint8_t g_Timer;
+volatile uint16_t g_Timer;
 volatile uint8_t g_MotorTicks;
+volatile uint8_t g_Lock;
+volatile uint8_t g_ItemInRange;
+
 /*
         TIMER DEFINES
 */

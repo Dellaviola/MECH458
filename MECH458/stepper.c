@@ -17,9 +17,11 @@
 #define CW 0x04
 #define CCW 0x08
 
-volatile uint8_t accell[6] = {0x94, 0x7D, 0x66, 0x50, 0x43, 0x40};
+volatile uint8_t accell[6] = {0x94, 0x7D, 0x66, 0x56, 0x43, 0x40};
 static volatile uint8_t position[6] = {100, 0, 50, 150, 100, 100};
-
+	
+extern list* STEPLIST;
+extern list* HEAD;
 //TODO; Write spin down
 
 void STEPPER_Init()
@@ -34,7 +36,7 @@ void STEPPER_Init()
 	stepper.next = 0;
 	stepper._isInitiated = 0;
 	stepper._accellStep = 0;
-	stepper._willContinue = 1;
+	stepper._willContinue = 0;
 
 	// For calibration
 	stepper._targetStep = 200;
@@ -81,7 +83,7 @@ void STEPPER_Rotate()
 	//Determine rotation direction
 	stepper.direction = (stepper._targetStep >= 0) ? CW : CCW;
 	//Determine if the Next target will require a stop or not
-	stepper._willContinue = (stepper._targetStep * nextSteps >= 0) ? 1 : 0;
+	stepper._willContinue = (stepper._targetStep * nextSteps > 0) ? 1 : 0;
 
 	//stepper can not take -ve numbers of steps
 	stepper._targetStep = abs(stepper._targetStep);
@@ -90,20 +92,41 @@ void STEPPER_Rotate()
 
 void STEPPER_SetRotation(uint8_t target, uint8_t next)
 {
-	cli();
-	//Use this function to set the target positions
-	stepper.target = target;
-	stepper.next = next;
-	STEPPER_Rotate();
-	OCR2A = accell[stepper._accellStep];
-	sei();
+	//Use this function to set the target
+	if(stepper.current != stepper.target)
+	{
+		stepper.early = 1;
+		stepper.earlytarget = target;
+		stepper.earlynext = next;
+	}
+	else
+	{
+		stepper.target = target;
+		stepper.next = next;
+		STEPPER_Rotate();
+	}
 }
 
 ISR(TIMER2_COMPA_vect)
 {
 	volatile uint8_t step[4] = {0x36, 0x2E, 0x2D, 0x35};
+	if (stepper._currentStep == stepper._targetStep)
+	{
 
-	if (stepper._currentStep < stepper._targetStep)
+		g_ItemInRange = 0;
+		//if you are at the target, don't rotate any farther and adjust the current position
+		stepper.current = stepper.target;
+		if(stepper.early)
+		{
+			stepper.early = 0;
+			STEPPER_SetRotation(stepper.earlytarget, stepper.earlynext);
+		}
+		//if the direction is changing reset the delay
+		stepper._accellStep = (stepper._willContinue) ? stepper._accellStep : 0;
+		OCR2A = accell[stepper._accellStep];
+
+	}
+	else if (stepper._currentStep <= stepper._targetStep)
 	{
 		//if your not at the target fire the motor
 		PORTA = (stepper.direction == CW) ? (step[stepper._stepNum]) : (step[3 - stepper._stepNum]);
@@ -111,7 +134,7 @@ ISR(TIMER2_COMPA_vect)
 
 		stepper._currentStep++;
 		//Simple acceleration / deceleration block uses curve defined in accel
-		if (((stepper._targetStep - stepper._currentStep) <= 5) && (accell[stepper._accellStep] < 0x94))
+		if (((stepper._willContinue == 0) && (stepper._targetStep - stepper._currentStep) <= 5) && (accell[stepper._accellStep] < 0x94))
 		{
 			stepper._accellStep--;
 		}
@@ -121,31 +144,15 @@ ISR(TIMER2_COMPA_vect)
 		}
 		OCR2A = accell[stepper._accellStep];
 	}
-	else if (stepper._currentStep == stepper._targetStep)
-	{
-		//if you are at the target, don't rotate any farther and adjust the current position
-		stepper.current = stepper.target;
-		//if the direction is changing reset the delay
-		stepper._accellStep = (stepper._willContinue) ? stepper._accellStep : 0;
-		OCR2A = accell[stepper._accellStep];
-		PORTA = (!stepper._willContinue) ? PORTA : PORTA;
-
-	}
-	if (stepper._isInitiated == 0)
+	if (stepper._isInitiated != 1)
 	{
 		if ((PINE & 0x08) == 0)
+		{			
+			stepper._isInitiated = STEPPER_OFFSET;
+		}
+		if (stepper._isInitiated > 1) stepper._isInitiated--;
+		if (stepper._isInitiated == 1)
 		{
-			//Reset the values when the hall sensor fires for the first time
-			
-			for (int i = 0; i < 5; i++)
-			{
-				PORTA = (stepper.direction == CW) ? (step[stepper._stepNum]) : (step[3 - stepper._stepNum]);
-				stepper._stepNum = (stepper._stepNum == 3) ? 0 : (stepper._stepNum + 1);
-
-				stepper._currentStep++;
-			}
-			
-			
 			stepper._isInitiated = 1;
 			stepper._stepNum = 0;
 			stepper.direction = 1;
@@ -154,6 +161,11 @@ ISR(TIMER2_COMPA_vect)
 			stepper._targetStep = 0;
 			stepper._currentStep = 0;
 			stepper.next = 0;
+			stepper._willContinue = 0;
+			stepper._accellStep = 0;
+			stepper.early = 0;
+			stepper.earlynext = 0;
+			stepper.earlytarget = 0;
 		}
 	}
 } // STEPPER_ISR

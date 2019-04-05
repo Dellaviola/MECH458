@@ -81,6 +81,7 @@ list* TAIL;
 list* STAGE1;
 list* STAGE2;
 list* FRONT;
+list* BUFFER;
 
 /*-----------------------------------------------------------*/
 /* 					Init Functions	 						 */

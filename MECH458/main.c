@@ -50,14 +50,19 @@ const uint16_t WHITE_BOUNDARY_HIGH = 915;
 const uint16_t WHITE_BOUNDARY_LOW = 905;
 
 const uint16_t STEEL_BOUNDARY_HIGH = 650;
-const uint16_t STEEL_BOUNDARY_LOW = 300;
+const uint16_t STEEL_BOUNDARY_LOW = 100;
 
 const uint16_t ALUMINUM_BOUNDARY_HIGH = 100;
 const uint16_t ALUMINUM_BOUNDARY_LOW = 20;
 
-const uint16_t STAGE2_DELAY_COUNT = 2000;
-const uint16_t DROP_DELAY_COUNT = 50;
+const uint16_t STAGE2_DELAY_COUNT = 400;
+const uint16_t DROP_DELAY_COUNT = 2;
 const uint16_t ITEM_MISSING_COUNT = 10000;
+
+const uint8_t STEPPER_OFFSET = 5;
+const uint8_t STEPPER_REVERSE = 5;
+
+volatile uint8_t BELT_SPEED = 100;
 
 // Make sure to use the correct lists
 extern list* HEAD;
@@ -65,6 +70,7 @@ extern list* STAGE1;
 extern list* STAGE2;
 extern list* TAIL;
 extern list* FRONT;
+extern list* STEPLIST;
 
 int main(void)
 {	
@@ -141,30 +147,30 @@ int main(void)
 	// For initial stepper positioning
 	int memory = 0;
 	static volatile uint8_t position[6] = {100, 0, 50, 150, 100, 100};
-
 	// Put IDLE operations in infinite loop
 	while (1)
 	{	
 		// Check for pause request	
 		if(g_PauseRequest) SYS_Pause(__FUNCTION__);
-		if(g_MotorOn)
-		{
-			if((g_MotorTicks - LL_GetTick(HEAD)) < STAGE2_DELAY_COUNT)
-			{
-				BELT_SPEED = 200;
-				PWM(1);
-			}
-			else 
-			{   
-				if(LL_GetClass(HEAD->prev) != LL_GetClass(HEAD)) BELT_SPEED = 100;
-				PWM(1);
-			}
-		}
-		if((g_MotorTicks - LL_GetTick(HEAD) > ITEM_MISSING_COUNT))
-		{
-			// Item Missing
-			SYS_Pause("!!!Item Missing!!!\r\n");
-		}
+
+// 		if(g_MotorOn)
+// 		{
+// 			if((g_Timer - LL_GetTick(HEAD)) < STAGE2_DELAY_COUNT)
+// 			{
+// 				BELT_SPEED = 150;
+// 				PWM(1);
+// 			}
+// 			else 
+// 			{   
+// 				if(LL_GetClass(HEAD->prev) != LL_GetClass(HEAD)) BELT_SPEED = 100;
+// 				PWM(1);
+// 			}
+// 		}
+// 		if(STAGE2 && (g_Timer - LL_GetTick(HEAD) > ITEM_MISSING_COUNT))
+// 		{
+// 			// Item Missing
+// 			SYS_Pause("!!!Item Missing!!!\r\n");
+// 		}
 
 		list* temp = HEAD;
 		uint16_t reflVal; 
@@ -208,11 +214,6 @@ int main(void)
 // 					{
 // 						LL_UpdateClass(temp, ALUMINUM);
 // 					}
-				}
-				if(memory == 0)
-				{
-					STEPPER_SetRotation(position[LL_GetClass(HEAD)],position[LL_GetClass(HEAD)]);
-					memory = 1;
 				}
 			}
 			temp = LL_Next(temp);
