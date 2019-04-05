@@ -250,39 +250,11 @@ void EXIT_Task(void* arg)
 	// Stepper Context
 	static uint16_t lastItemTick = 0;
 
-	// Check Ticks
-// 	if (((g_Timer - LL_GetTick(HEAD)) < STAGE2_DELAY_COUNT))
-// 	{
-// 		// Item arrived too early
-// 		_timer[3].state = BLOCKED;
-// 		 return;
-// 	}
-// 	if (LL_GetClass(HEAD) == UNCLASSIFIED)
-// 	{
-// 		 g_PauseRequest = 1;
-// 		 _timer[3].state = BLOCKED;
-// 		 return;
-// 	}
-// 	
-// 	if ((g_Timer - LL_GetTick(HEAD->prev)) < DROP_DELAY_COUNT)
-// 	{
-// 		//Item dropped too recently
-// 		return;
-// 	}
 	
-	if((((stepper._targetStep - stepper._currentStep) < 15) && (stepper.early == 0)) || (LL_GetClass(HEAD) == LL_GetClass(HEAD->next)))
+	if(((stepper._targetStep - stepper._currentStep) < 12) && (stepper.early == 0))
 	{
 		LL_UpdateStatus(HEAD,EXPIRED);
 		HEAD = LL_Next(HEAD);
-		if(LL_GetClass(HEAD) == LL_GetClass(HEAD->next))
-		{
-			BELT_SPEED = 150;
-		}
-		else
-		{
-			BELT_SPEED = 100;
-			STEPPER_SetRotation(position[LL_GetClass(HEAD)], position[LL_GetClass(HEAD->next)]);
-		}
 		PWM(1);
 		_timer[3].state = BLOCKED;
 	}
