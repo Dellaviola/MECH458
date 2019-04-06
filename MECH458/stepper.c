@@ -131,7 +131,7 @@ ISR(TIMER2_COMPA_vect)
 		stepper._accellStep = (stepper._willContinue) ? stepper._accellStep : 0;
 		OCR2A = accell[stepper._accellStep];
 	}
-	else if ((stepper._currentStep < stepper._targetStep) && (stepper.same == 0))
+	if ((stepper._currentStep < stepper._targetStep) && (stepper.same == 0))
 	{
 		//if your not at the target fire the motor
 		PORTA = (stepper.direction == CW) ? (step[stepper._stepNum]) : (step[3 - stepper._stepNum]);
