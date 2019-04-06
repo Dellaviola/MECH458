@@ -257,10 +257,18 @@ void EXIT_Task(void* arg)
 	// Stepper Context
 	static uint16_t lastItemTick = 0;
 
-	
+	if(LL_GetStatus(HEAD) < SORTABLE) {_timer[3].state = BLOCKED; return;}
 	if(g_Timer < EXIT_DELAY) {_timer[3].state = BLOCKED; return;}
 	if(((g_Timer - LL_GetClass(HEAD)) < STAGE2_EXIT_TIME)) {_timer[3].state = BLOCKED; return;}
-	if(LL_GetClass(HEAD) == UNCLASSIFIED); // Unclassified item handler
+	if(LL_GetClass(HEAD) == UNCLASSIFIED)
+	{
+		g_UnclassifiedRequest = 1;
+		LL_UpdateStatus(HEAD,EXPIRED);
+		lastItemTick = LL_GetTick(HEAD);
+		HEAD = LL_Next(HEAD);
+		STEPPER_SetRotation(position[LL_GetClass(HEAD)],position[LL_GetClass(HEAD->next)]);
+		_timer[3].state = BLOCKED;
+	} // Unclassified item handler
 	
 	volatile uint8_t query = stepper._targetStep - stepper._currentStep;
 	

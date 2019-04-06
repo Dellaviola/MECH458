@@ -72,8 +72,6 @@ void SYS_Init()
 	}
 	
 	// For prev checks
-	LL_UpdateClass(HEAD->prev, UNCLASSIFIED);
-	LL_UpdateTick(HEAD->prev, 0);
 
 	UART_SendString("System Initialized...");
 
@@ -196,7 +194,7 @@ void SYS_Rampdown()
 	uint8_t sortedStats[6] = {0,0,0,0,0,0};
 	uint8_t total = 0;
 	
-	char str[50];
+	char str[100];
 	
 	list* temp = FRONT;
 	
@@ -219,4 +217,86 @@ void SYS_Rampdown()
 				total, sortedStats[1], sortedStats[0], sortedStats[3], sortedStats[2], sortedStats[4]);
 	UART_SendString(str);
 	//SYS_Calibrate("Get Calibration Stats:");
+}
+void SYS_Test(char str[20])
+{
+	//
+	cli();
+	PWM(0);
+	char buffer[100];
+	extern list* HEAD;
+	extern list* STAGE1;
+	extern list* STAGE2;
+	extern list* TAIL;
+	extern list* FRONT;
+	list* temp = FRONT;
+	int c = 0;
+	
+	uint8_t sortedStats[6] = {0,0,0,0,0,0};
+	uint8_t total = 0;
+
+	//while (temp->prev) temp = LL_Prev(temp);
+	
+	UART_SendString(str);
+	
+	while(LL_GetStatus(temp) == EXPIRED)
+	{
+		total++;
+		sortedStats[LL_GetClass(temp)] += 1;
+		temp = LL_Next(temp);
+	}
+	UART_SendString("\r\nSorted items...\r\n\r\n");
+	sprintf(buffer,"%u Items Sorted!\r\n\r\nBlack: %u/12\tWhite: %u/12\tSteel: %u/12\tAluminum: %u/12\tUnknown Items: %u\r\n",
+	total, sortedStats[1], sortedStats[0], sortedStats[3], sortedStats[2], sortedStats[4]);
+	UART_SendString(buffer);
+	UART_SendString("\r\n\r\nItems Ready for sorting... \r\n\r\n");
+	while (LL_GetStatus(temp) == SORTABLE)
+	{
+		char listbuff[100];
+		c++;
+		sprintf(listbuff, "Item %d: Reflectance: %u, Magnetic: %u\r\n",
+		c, LL_GetRefl(temp), LL_GetMag(temp));
+		UART_SendString(listbuff);
+		temp = LL_Next(temp);
+	}
+	UART_SendString("\r\n\r\nItems ready for scanning...\r\n\r\n");
+	while (LL_GetStatus(temp) == INITIALIZED)
+	{
+		char listbuff[100];
+		c++;
+		sprintf(listbuff, "Item %d: Reflectance: %u, Magnetic: %u\r\n",
+		c, LL_GetRefl(temp), LL_GetMag(temp));
+		UART_SendString(listbuff);
+		temp = LL_Next(temp);
+	}
+	while(1)
+	{
+		if((PIND & 0x03) == 0x00) // Both Buttons
+		{
+			UART_SendString("Starting System!\r\n");
+			PWM(0x80);
+			g_PauseRequest = 0;
+			sei();
+			break;
+		}
+	}
+	return;
+} // SYS_Test
+void SYS_Unclassified()
+{
+	UART_SendString("\r\n\r\n\r\nUNCLASSIFIED ITEM DETECTED\r\n\r\n\r\n");
+	UART_SendString("Item statistics:\r\nReflectance: %u, Magnetic: %u\r\n");
+	UART_SendString("\r\n\r\n\r\nPlease remove item and push both buttons to resume\r\n\r\n\r\n");
+	while(1)
+	{
+		if((PIND & 0x03) == 0x00) // Both Buttons
+		{
+			UART_SendString("Starting System!\r\n");
+			PWM(0x80);
+			g_UnclassifiedRequest = 0;
+			sei();
+			break;
+		}
+	}
+	return;
 }

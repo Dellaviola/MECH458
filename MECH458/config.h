@@ -45,7 +45,7 @@ volatile uint16_t g_Timer;
 volatile uint8_t g_MotorTicks;
 volatile uint8_t g_Lock;
 volatile uint8_t g_ItemInRange;
-
+volatile uint8_t g_UnclassifiedRequest;
 /*
         TIMER DEFINES
 */

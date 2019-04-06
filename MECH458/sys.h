@@ -35,5 +35,7 @@ void SYS_Init(void);
 void SYS_Pause(const char[20]);
 void SYS_Calibrate(char [20]);
 void SYS_Rampdown(void);
+void SYS_Test(char [20]);
+void SYS_Unclassified(void);
 
 #endif /* SYS_H_ */

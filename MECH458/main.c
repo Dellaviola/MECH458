@@ -153,7 +153,8 @@ int main(void)
 	while (1)
 	{	
 		// Check for pause request	
-		if(g_PauseRequest) SYS_Pause(__FUNCTION__);
+		if(g_PauseRequest) SYS_Test("Pause Requested!\r\n");
+		if(g_UnclassifiedRequest) SYS_Unclassified();
 
 // 		if(g_MotorOn)
 // 		{
