@@ -49,7 +49,7 @@ const uint16_t BLACK_BOUNDARY_LOW = 800;
 const uint16_t WHITE_BOUNDARY_HIGH = 915;
 const uint16_t WHITE_BOUNDARY_LOW = 905;
 
-const uint16_t STEEL_BOUNDARY_HIGH = 650;
+const uint16_t STEEL_BOUNDARY_HIGH = 700;
 const uint16_t STEEL_BOUNDARY_LOW = 100;
 
 const uint16_t ALUMINUM_BOUNDARY_HIGH = 100;
@@ -59,11 +59,13 @@ const uint16_t STAGE2_DELAY_COUNT = 400;
 const uint16_t DROP_DELAY_COUNT = 2;
 const uint16_t ITEM_MISSING_COUNT = 10000;
 
-const uint8_t STEPPER_OFFSET = 5;
-const uint8_t STEPPER_REVERSE = 5;
-const uint8_t STEPPER_SAME = 10;
+const uint8_t STEPPER_OFFSET = 5;		// Calibration Offset
+const uint8_t STEPPER_REVERSE = 5;		// IDK
+const uint8_t STEPPER_SAME = 10;		// Delay for double item
+const uint8_t STEPPER_RANGE = 25;		// Drop when stepper in range
+const uint8_t STEPPER_SET = 5;			// If stepper close delay
 
-volatile uint8_t BELT_SPEED = 100;
+volatile uint8_t BELT_SPEED = 120;
 
 // Make sure to use the correct lists
 extern list* HEAD;

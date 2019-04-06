@@ -30,6 +30,8 @@ const uint16_t DROP_DELAY_COUNT;
 const uint8_t STEPPER_OFFSET;
 const uint8_t STEPPER_REVERSE;
 const uint8_t STEPPER_SAME;
+const uint8_t STEPPER_RANGE;
+const uint8_t STEPPER_SET;
 
 // Globals
 volatile uint16_t g_ADCResult[10];

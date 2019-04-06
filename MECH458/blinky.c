@@ -250,9 +250,15 @@ void EXIT_Task(void* arg)
 	// Stepper Context
 	static uint16_t lastItemTick = 0;
 
+	volatile uint8_t query = stepper._targetStep - stepper._currentStep;
 	
-	if(((stepper._targetStep - stepper._currentStep) < 12) && (stepper.early == 0))
+	if((query < STEPPER_RANGE) && (stepper.early == 0))
 	{
+		if((query < 5) && (stepper.same == 0)) 
+		{
+			stepper.same = STEPPER_SET;
+			stepper._accellStep = 0;
+		}
 		LL_UpdateStatus(HEAD,EXPIRED);
 		HEAD = LL_Next(HEAD);
 		PWM(1);
