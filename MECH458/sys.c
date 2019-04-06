@@ -136,6 +136,7 @@ void SYS_Pause(const char str[20])
 		if((PIND & 0x03) == 0x00) 
 		{
 			UART_SendString("Starting System!\r\n");
+			g_PauseRequest = 0;
 			PWM(0x80);
 			sei();
 			return;

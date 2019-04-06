@@ -140,6 +140,10 @@ void SERVER_Task(void* arg)
 		}
 		pin5state = 1;			
 	}
+	if((LL_GetClass(HEAD) == UNCLASSIFIED) && (stepper.early == 0))
+	{
+		memory = 0;
+	}
 	if ((memory == 0) && (LL_GetClass(HEAD) != UNCLASSIFIED) && (LL_GetClass(HEAD->next) != UNCLASSIFIED))
 	{
 		memory = 1;
@@ -252,6 +256,7 @@ void EXIT_Task(void* arg)
 
 	volatile uint8_t query = stepper._targetStep - stepper._currentStep;
 	
+	
 	if((query < STEPPER_RANGE) && (stepper.early == 0))
 	{
 		if((query < 5) && (stepper.same == 0)) 
@@ -265,10 +270,9 @@ void EXIT_Task(void* arg)
 		STEPPER_SetRotation(position[LL_GetClass(HEAD)],position[LL_GetClass(HEAD->next)]);
 		_timer[3].state = BLOCKED;
 	}
-	else 
+	else
 	{
-		PWM(0);
-		g_Lock = 1;
+		if(!((HEAD->prev) && (LL_GetClass(HEAD->prev)  == LL_GetClass(HEAD)))) PWM(0);
 	}
 
 
@@ -296,22 +300,25 @@ void BTN_Task(void* arg)
 	if (PIND & 0x03)
 	{
 		debounce++;
-		if(debounce > 2)
+		if(debounce > 10)
 		{
 			// Both Buttons : No Function
 			if((PIND & 0x03) == 0x00) 
 			{
 				//
+				debounce = 0;
 			}
 			// Button 1 : Pause System
 			else if ((PIND & 0x03) == 0x01) 
 			{
 				g_PauseRequest = 1;
+				debounce = 0;
 			}
 			// Button 2 : Force Ramp Down 
 			else if ((PIND & 0x03) == 0x02) 
 			{
 				_timer[4].state = READY;
+				debounce = 0;
 			}
 			// Spurious
 			else
