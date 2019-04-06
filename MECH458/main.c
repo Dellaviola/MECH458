@@ -60,9 +60,9 @@ const uint16_t EXIT_DELAY = 1300;
 
 const uint8_t STEPPER_OFFSET = 5;		// Calibration Offset
 const uint8_t STEPPER_REVERSE = 5;		// IDK
-const uint8_t STEPPER_SAME = 10;		// Delay for double item
+const uint8_t STEPPER_SAME = 5;		// Delay for double item
 const uint8_t STEPPER_RANGE = 25;		// Drop when stepper in range
-const uint8_t STEPPER_SET = 5;			// If stepper close delay
+const uint8_t STEPPER_SET = 3;			// If stepper close delay
 
 volatile uint8_t BELT_SPEED = 120;
 
