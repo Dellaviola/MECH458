@@ -280,9 +280,8 @@ void EXIT_Task(void* arg)
 	}
 	else
 	{
-		if(!((HEAD->prev) && (LL_GetClass(HEAD->prev)  == LL_GetClass(HEAD)))) PWM(0);
+		PWM(0);
 	}
-
 
 	
 	/* BUGS:
