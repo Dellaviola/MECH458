@@ -61,6 +61,7 @@ const uint16_t ITEM_MISSING_COUNT = 10000;
 
 const uint8_t STEPPER_OFFSET = 5;
 const uint8_t STEPPER_REVERSE = 5;
+const uint8_t STEPPER_SAME = 10;
 
 volatile uint8_t BELT_SPEED = 100;
 

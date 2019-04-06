@@ -32,6 +32,7 @@ void STEPPER_Init()
 	stepper.direction = 1;
 	stepper.target = 0;
 	stepper.current = 0;
+	stepper.same = 0;
 	stepper._currentStep = 0;
 	stepper.next = 0;
 	stepper._isInitiated = 0;
@@ -103,13 +104,18 @@ void STEPPER_SetRotation(uint8_t target, uint8_t next)
 	{
 		stepper.target = target;
 		stepper.next = next;
+		if(target == stepper.current) stepper.same = STEPPER_SAME;
 		STEPPER_Rotate();
 	}
 }
 
 ISR(TIMER2_COMPA_vect)
 {
+	
 	volatile uint8_t step[4] = {0x36, 0x2E, 0x2D, 0x35};
+		
+	if(stepper.same) stepper.same--;
+		
 	if (stepper._currentStep == stepper._targetStep)
 	{
 
@@ -124,9 +130,8 @@ ISR(TIMER2_COMPA_vect)
 		//if the direction is changing reset the delay
 		stepper._accellStep = (stepper._willContinue) ? stepper._accellStep : 0;
 		OCR2A = accell[stepper._accellStep];
-
 	}
-	else if (stepper._currentStep <= stepper._targetStep)
+	else if ((stepper._currentStep < stepper._targetStep) && (stepper.same == 0))
 	{
 		//if your not at the target fire the motor
 		PORTA = (stepper.direction == CW) ? (step[stepper._stepNum]) : (step[3 - stepper._stepNum]);

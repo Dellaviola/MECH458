@@ -256,6 +256,7 @@ void EXIT_Task(void* arg)
 		LL_UpdateStatus(HEAD,EXPIRED);
 		HEAD = LL_Next(HEAD);
 		PWM(1);
+		STEPPER_SetRotation(position[LL_GetClass(HEAD)],position[LL_GetClass(HEAD->next)]);
 		_timer[3].state = BLOCKED;
 	}
 	else 

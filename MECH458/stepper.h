@@ -26,6 +26,7 @@ typedef struct stepper_param
 	volatile int _targetStep;
 	volatile uint8_t _currentStep;
 	volatile int next;
+	volatile uint8_t same;
 	volatile uint8_t _willContinue;
 	volatile uint8_t _isInitiated;
 	volatile uint8_t _accellStep;
