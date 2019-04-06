@@ -70,6 +70,10 @@ void SYS_Init()
 		initNode = LL_ItemInit(65000,250, END_OF_LIST, UNINITIALIZED);
 		LL_AddBack(HEAD,initNode);
 	}
+	
+	// For prev checks
+	LL_UpdateClass(HEAD->prev, UNCLASSIFIED);
+	LL_UpdateTick(HEAD->prev, 0);
 
 	UART_SendString("System Initialized...");
 

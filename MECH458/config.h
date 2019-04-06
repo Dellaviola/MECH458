@@ -25,8 +25,10 @@
 // Setting Declarations
 
 volatile uint8_t BELT_SPEED;
-const uint16_t STAGE2_DELAY_COUNT;
-const uint16_t DROP_DELAY_COUNT;
+
+const uint16_t STAGE2_EXIT_TIME;
+const uint16_t EXIT_DELAY;
+
 const uint8_t STEPPER_OFFSET;
 const uint8_t STEPPER_REVERSE;
 const uint8_t STEPPER_SAME;

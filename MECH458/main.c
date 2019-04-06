@@ -43,7 +43,7 @@
 #define CALIBMODE 0
 
 // Configure boundaries
-const uint16_t BLACK_BOUNDARY_HIGH = 950;
+const uint16_t BLACK_BOUNDARY_HIGH = 970;
 const uint16_t BLACK_BOUNDARY_LOW = 800;
 
 const uint16_t WHITE_BOUNDARY_HIGH = 915;
@@ -55,9 +55,8 @@ const uint16_t STEEL_BOUNDARY_LOW = 300;
 const uint16_t ALUMINUM_BOUNDARY_HIGH = 300;
 const uint16_t ALUMINUM_BOUNDARY_LOW = 10;
 
-const uint16_t STAGE2_DELAY_COUNT = 400;
-const uint16_t DROP_DELAY_COUNT = 2;
-const uint16_t ITEM_MISSING_COUNT = 10000;
+const uint16_t STAGE2_EXIT_TIME = 800;
+const uint16_t EXIT_DELAY = 1300;
 
 const uint8_t STEPPER_OFFSET = 5;		// Calibration Offset
 const uint8_t STEPPER_REVERSE = 5;		// IDK

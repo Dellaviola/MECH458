@@ -140,11 +140,14 @@ void SERVER_Task(void* arg)
 		}
 		pin5state = 1;			
 	}
-	if((LL_GetClass(HEAD) == UNCLASSIFIED) && (stepper.early == 0))
+	if((LL_GetClass(HEAD) == UNCLASSIFIED) && (stepper.early == 0) && ((g_Timer - LL_GetTick(HEAD)) > STAGE2_EXIT_TIME))
 	{
 		memory = 0;
 	}
-	if ((memory == 0) && (LL_GetClass(HEAD) != UNCLASSIFIED) && (LL_GetClass(HEAD->next) != UNCLASSIFIED))
+	if ((memory == 0) 
+		&& (LL_GetClass(HEAD) != UNCLASSIFIED) 
+		&& (LL_GetClass(HEAD->next) != UNCLASSIFIED)
+		&& (stepper.current == stepper.target))
 	{
 		memory = 1;
 		STEPPER_SetRotation(position[LL_GetClass(HEAD)], position[LL_GetClass(HEAD->next)]);
@@ -254,8 +257,12 @@ void EXIT_Task(void* arg)
 	// Stepper Context
 	static uint16_t lastItemTick = 0;
 
-	volatile uint8_t query = stepper._targetStep - stepper._currentStep;
 	
+	if(g_Timer < EXIT_DELAY) {_timer[3].state = BLOCKED; return;}
+	if(((g_Timer - LL_GetClass(HEAD)) < STAGE2_EXIT_TIME)) {_timer[3].state = BLOCKED; return;}
+	if(LL_GetClass(HEAD) == UNCLASSIFIED); // Unclassified item handler
+	
+	volatile uint8_t query = stepper._targetStep - stepper._currentStep;
 	
 	if((query < STEPPER_RANGE) && (stepper.early == 0))
 	{
@@ -265,6 +272,7 @@ void EXIT_Task(void* arg)
 			stepper._accellStep = 0;
 		}
 		LL_UpdateStatus(HEAD,EXPIRED);
+		lastItemTick = LL_GetTick(HEAD);
 		HEAD = LL_Next(HEAD);
 		PWM(1);
 		STEPPER_SetRotation(position[LL_GetClass(HEAD)],position[LL_GetClass(HEAD->next)]);
@@ -306,19 +314,16 @@ void BTN_Task(void* arg)
 			if((PIND & 0x03) == 0x00) 
 			{
 				//
-				debounce = 0;
 			}
 			// Button 1 : Pause System
 			else if ((PIND & 0x03) == 0x01) 
 			{
 				g_PauseRequest = 1;
-				debounce = 0;
 			}
 			// Button 2 : Force Ramp Down 
 			else if ((PIND & 0x03) == 0x02) 
 			{
 				_timer[4].state = READY;
-				debounce = 0;
 			}
 			// Spurious
 			else
