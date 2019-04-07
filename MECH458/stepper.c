@@ -119,7 +119,6 @@ ISR(TIMER2_COMPA_vect)
 	if (stepper._currentStep == stepper._targetStep)
 	{
 
-		g_ItemInRange = 0;
 		//if you are at the target, don't rotate any farther and adjust the current position
 		stepper.current = stepper.target;
 		if(stepper.early)

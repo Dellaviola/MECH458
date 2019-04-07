@@ -37,5 +37,6 @@ void SYS_Calibrate(char [20]);
 void SYS_Rampdown(void);
 void SYS_Test(char [20]);
 void SYS_Unclassified(void);
+void SYS_Missing(void);
 
 #endif /* SYS_H_ */

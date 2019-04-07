@@ -57,6 +57,7 @@ const uint16_t ALUMINUM_BOUNDARY_LOW = 10;
 
 const uint16_t STAGE2_EXIT_TIME = 800;
 const uint16_t EXIT_DELAY = 1300;
+const uint16_t MISSING_DELAY = 75;
 
 const uint8_t STEPPER_OFFSET = 5;		// Calibration Offset
 const uint8_t STEPPER_REVERSE = 5;		// IDK
@@ -155,6 +156,7 @@ int main(void)
 		// Check for pause request	
 		if(g_PauseRequest) SYS_Test("Pause Requested!\r\n");
 		if(g_UnclassifiedRequest) SYS_Unclassified();
+		if(g_MissingRequest) SYS_Missing();
 
 // 		if(g_MotorOn)
 // 		{

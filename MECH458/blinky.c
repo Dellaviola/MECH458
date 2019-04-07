@@ -23,6 +23,8 @@ extern list* BUFFER;
 
 static volatile uint8_t position[6] = {100, 0, 50, 150, 100, 100};
 extern stepperParam stepper;
+static volatile uint16_t lastItemTick = 0;
+
 /*-----------------------------------------------------------*/
 /* 					Scheduler Functions 					 */
 
@@ -117,6 +119,7 @@ void SERVER_Task(void* arg)
 				// First Item enters stage 2
 				STAGE2 = HEAD; 
 				LL_UpdateTick(STAGE2, g_Timer);
+				lastItemTick = g_Timer + 1100;
 			}
 			else
 			{
@@ -251,15 +254,12 @@ void EXIT_Task(void* arg)
 	/*! 
 	* \brief 	Handles an item at the end of the conveyor belt
 	*
-	* \param	Unused
 	*/
 	
-	// Stepper Context
-	static uint16_t lastItemTick = 0;
-
+	// Error Checks
 	if(LL_GetStatus(HEAD) < SORTABLE) {_timer[3].state = BLOCKED; return;}
 	if(g_Timer < EXIT_DELAY) {_timer[3].state = BLOCKED; return;}
-	if(((g_Timer - LL_GetClass(HEAD)) < STAGE2_EXIT_TIME)) {_timer[3].state = BLOCKED; return;}
+	if(((g_Timer - LL_GetTick(HEAD)) < STAGE2_EXIT_TIME)) {_timer[3].state = BLOCKED; return;}
 	if(LL_GetClass(HEAD) == UNCLASSIFIED)
 	{
 		g_UnclassifiedRequest = 1;
@@ -269,6 +269,13 @@ void EXIT_Task(void* arg)
 		STEPPER_SetRotation(position[LL_GetClass(HEAD)],position[LL_GetClass(HEAD->next)]);
 		_timer[3].state = BLOCKED;
 	} // Unclassified item handler
+	
+	if((LL_GetStatus(HEAD->next) == SORTABLE) && ((g_Timer - lastItemTick) >= (LL_GetTick(HEAD->next) - LL_GetTick(HEAD) + MISSING_DELAY)))
+	{
+		g_MissingRequest = 1;
+		_timer[3].state = BLOCKED; 
+		return;
+	} // ITEM MISSING
 	
 	volatile uint8_t query = stepper._targetStep - stepper._currentStep;
 	
@@ -280,7 +287,7 @@ void EXIT_Task(void* arg)
 			stepper._accellStep = 0;
 		}
 		LL_UpdateStatus(HEAD,EXPIRED);
-		lastItemTick = LL_GetTick(HEAD);
+		lastItemTick = g_Timer;
 		HEAD = LL_Next(HEAD);
 		PWM(1);
 		STEPPER_SetRotation(position[LL_GetClass(HEAD)],position[LL_GetClass(HEAD->next)]);

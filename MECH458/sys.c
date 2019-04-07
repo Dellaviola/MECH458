@@ -39,8 +39,8 @@ void SYS_Init()
 	g_PauseRequest = 0;
 	g_WDTimeout = 0;
 	g_Timer = 0;
-	g_Lock = 0;
-	g_ItemInRange = 0;
+	g_MissingRequest = 0;
+	g_UnclassifiedRequest = 0;
 
 	HEAD = NULL;
 	TAIL = NULL;
@@ -284,6 +284,8 @@ void SYS_Test(char str[20])
 } // SYS_Test
 void SYS_Unclassified()
 {
+	cli();
+	PWM(0);
 	UART_SendString("\r\n\r\n\r\nUNCLASSIFIED ITEM DETECTED\r\n\r\n\r\n");
 	UART_SendString("Item statistics:\r\nReflectance: %u, Magnetic: %u\r\n");
 	UART_SendString("\r\n\r\n\r\nPlease remove item and push both buttons to resume\r\n\r\n\r\n");
@@ -294,6 +296,31 @@ void SYS_Unclassified()
 			UART_SendString("Starting System!\r\n");
 			PWM(0x80);
 			g_UnclassifiedRequest = 0;
+			sei();
+			break;
+		}
+	}
+	return;
+}
+void SYS_Missing()
+{
+	cli();
+	PWM(0);
+	char buffer[50];
+	extern list* HEAD;
+	UART_SendString("\r\n\r\n\r\nITEM MISSING\r\n\r\n\r\n");
+	UART_SendString("\r\n\r\n\r\nITEM MISSING\r\n\r\n\r\n");
+	UART_SendString("\r\n\r\n\r\nITEM MISSING\r\n\r\n\r\n");
+	sprintf(buffer, "System Tick: %u, Head Tick: %u Next Tick: %u\r\n\r\n\r\n",g_Timer, LL_GetTick(HEAD), LL_GetTick(HEAD->next));
+	UART_SendString(buffer);	
+	UART_SendString("Press both buttons to resume...\r\n");
+	while(1)
+	{
+		if((PIND & 0x03) == 0x00) // Both Buttons
+		{
+			UART_SendString("Starting System!\r\n");
+			PWM(0x80);
+			g_MissingRequest = 0;
 			sei();
 			break;
 		}

@@ -28,6 +28,7 @@ volatile uint8_t BELT_SPEED;
 
 const uint16_t STAGE2_EXIT_TIME;
 const uint16_t EXIT_DELAY;
+const uint16_t MISSING_DELAY;
 
 const uint8_t STEPPER_OFFSET;
 const uint8_t STEPPER_REVERSE;
@@ -42,10 +43,8 @@ volatile uint8_t g_MotorOn;
 volatile uint8_t g_PauseRequest;
 volatile uint8_t g_WDTimeout;
 volatile uint16_t g_Timer;
-volatile uint8_t g_MotorTicks;
-volatile uint8_t g_Lock;
-volatile uint8_t g_ItemInRange;
 volatile uint8_t g_UnclassifiedRequest;
+volatile uint8_t g_MissingRequest;
 /*
         TIMER DEFINES
 */
