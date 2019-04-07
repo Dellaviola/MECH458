@@ -57,7 +57,7 @@ const uint16_t ALUMINUM_BOUNDARY_LOW = 10;
 
 const uint16_t STAGE2_EXIT_TIME = 800;
 const uint16_t EXIT_DELAY = 1100;
-const uint16_t MISSING_DELAY = 100;
+const uint16_t MISSING_DELAY = 125;
 
 const uint8_t STEPPER_OFFSET = 5;		// Calibration Offset
 const uint8_t STEPPER_REVERSE = 5;		// IDK

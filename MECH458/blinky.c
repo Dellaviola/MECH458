@@ -61,6 +61,7 @@ void SERVER_Task(void* arg)
 		{
 			// Signal the start of the system by placing the first node into stage1
 			if(STAGE1 == NULL) STAGE1 = HEAD;
+			if(LL_GetClass(HEAD) == END_OF_LIST) LL_UpdateStatus(HEAD,UNCLASSIFIED);
 			g_WDTimeout = 0;
 
 		}
@@ -119,7 +120,7 @@ void SERVER_Task(void* arg)
 				// First Item enters stage 2
 				STAGE2 = HEAD; 
 				LL_UpdateTick(STAGE2, g_Timer);
-				lastItemTick = STAGE2_EXIT_TIME;
+				lastItemTick = STAGE2_EXIT_TIME + 75;
 			}
 			else
 			{
@@ -137,11 +138,13 @@ void SERVER_Task(void* arg)
 		// Transition Detected O3 Low -> High : Item Exits System
 		if(!pin5state)
 		{
-
-			if(LL_GetClass(HEAD) == END_OF_LIST) SYS_Rampdown();
 						
 		}
 		pin5state = 1;			
+	}
+	if(g_Timer == 2*EXIT_DELAY)
+	{
+		if(HEAD == FRONT) g_MissingRequest = 1;
 	}
 	if((LL_GetClass(HEAD) == UNCLASSIFIED) && (stepper.early == 0) && ((g_Timer - LL_GetTick(HEAD)) > STAGE2_EXIT_TIME))
 	{
@@ -149,7 +152,7 @@ void SERVER_Task(void* arg)
 	}
 	if ((memory == 0) 
 		&& (LL_GetClass(HEAD) != UNCLASSIFIED) 
-		&& (LL_GetClass(HEAD->next) != UNCLASSIFIED)
+		&& ((LL_GetClass(HEAD->next) != UNCLASSIFIED) || ((g_Timer - LL_GetTick(HEAD)) > STAGE2_EXIT_TIME))
 		&& (stepper.current == stepper.target))
 	{
 		memory = 1;
@@ -300,15 +303,6 @@ void EXIT_Task(void* arg)
 	{
 		PWM(0);
 	}
-
-	
-	/* BUGS:
-				STEPPER WILL CONTINUE if there is a gap between pieces stepper will stutter.
-				
-	*/
-	// Rampdown
-	if(LL_GetClass(HEAD) == END_OF_LIST);
-
 } // EXIT_Task
 
 void BTN_Task(void* arg)
