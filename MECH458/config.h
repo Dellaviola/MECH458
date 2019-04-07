@@ -45,6 +45,7 @@ volatile uint8_t g_WDTimeout;
 volatile uint16_t g_Timer;
 volatile uint8_t g_UnclassifiedRequest;
 volatile uint8_t g_MissingRequest;
+volatile uint16_t g_TimerLast;
 /*
         TIMER DEFINES
 */

@@ -41,6 +41,7 @@ void SYS_Init()
 	g_Timer = 0;
 	g_MissingRequest = 0;
 	g_UnclassifiedRequest = 0;
+	g_TimerLast = 0;
 
 	HEAD = NULL;
 	TAIL = NULL;
@@ -313,13 +314,13 @@ void SYS_Missing()
 {
 	cli();
 	PWM(0);
-	char buffer[50];
+	char buffer[100];
 	extern list* HEAD;
 	extern list* N_1;
 	UART_SendString("\r\n\r\n\r\nITEM MISSING\r\n\r\n\r\n");
 	UART_SendString("\r\n\r\n\r\nITEM MISSING\r\n\r\n\r\n");
 	UART_SendString("\r\n\r\n\r\nITEM MISSING\r\n\r\n\r\n");
-	sprintf(buffer, "System Tick: %u, Head Tick: %u Prev Tick: %u\r\n\r\n\r\n",g_Timer, LL_GetTick(HEAD), LL_GetTick(N_1));
+	sprintf(buffer, "System Tick: %u, Last Tick: %u, Head Tick: %u Prev Tick: %u\r\n\r\n\r\n",g_Timer, g_TimerLast, LL_GetTick(HEAD), LL_GetTick(N_1));
 	UART_SendString(buffer);	
 	UART_SendString("Press both buttons to resume...\r\n");
 	while(1)

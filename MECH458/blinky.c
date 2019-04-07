@@ -119,7 +119,7 @@ void SERVER_Task(void* arg)
 				// First Item enters stage 2
 				STAGE2 = HEAD; 
 				LL_UpdateTick(STAGE2, g_Timer);
-				lastItemTick = EXIT_DELAY;
+				lastItemTick = STAGE2_EXIT_TIME;
 			}
 			else
 			{
@@ -271,12 +271,12 @@ void EXIT_Task(void* arg)
 	} // Unclassified item handler
 	
 	//if(lastItemTick == 0) lastItemTick = EXIT_DELAY;
-	if((LL_GetStatus(HEAD) == SORTABLE) && ((g_Timer - lastItemTick) >= (LL_GetTick(HEAD) - LL_GetTick(HEAD->prev) + MISSING_DELAY)))
+	if((LL_GetStatus(HEAD) == SORTABLE) && ((g_Timer - lastItemTick) >= (LL_GetTick(HEAD) - LL_GetTick(N_1) + MISSING_DELAY)))
 	{
 		g_MissingRequest = 1;
-		_timer[3].state = BLOCKED; 
+		_timer[3].state = BLOCKED;
 		return;
-	} // ITEM MISSING
+	} // ITEM MISSINGITEM MISSING
 	
 	volatile uint8_t query = stepper._targetStep - stepper._currentStep;
 	
@@ -289,6 +289,8 @@ void EXIT_Task(void* arg)
 		}
 		LL_UpdateStatus(HEAD,EXPIRED);
 		lastItemTick =  g_Timer;
+		g_TimerLast = g_Timer;
+		N_1 = HEAD;
 		HEAD = LL_Next(HEAD);
 		PWM(1);
 		STEPPER_SetRotation(position[LL_GetClass(HEAD)],position[LL_GetClass(HEAD->next)]);
