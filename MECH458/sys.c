@@ -287,7 +287,9 @@ void SYS_Unclassified()
 	cli();
 	PWM(0);
 	UART_SendString("\r\n\r\n\r\nUNCLASSIFIED ITEM DETECTED\r\n\r\n\r\n");
-	UART_SendString("Item statistics:\r\nReflectance: %u, Magnetic: %u\r\n");
+	char buffer[50];
+	sprintf(buffer, "Item statistics:\r\nReflectance: %u, Magnetic: %u\r\n", LL_GetRefl(HEAD), LL_GetMag(HEAD));
+	UART_SendString(buffer);
 	UART_SendString("\r\n\r\n\r\nPlease remove item and push both buttons to resume\r\n\r\n\r\n");
 	while(1)
 	{
@@ -311,8 +313,8 @@ void SYS_Missing()
 	UART_SendString("\r\n\r\n\r\nITEM MISSING\r\n\r\n\r\n");
 	UART_SendString("\r\n\r\n\r\nITEM MISSING\r\n\r\n\r\n");
 	UART_SendString("\r\n\r\n\r\nITEM MISSING\r\n\r\n\r\n");
-	sprintf(buffer, "System Tick: %u, Head Tick: %u Next Tick: %u\r\n\r\n\r\n",g_Timer, LL_GetTick(HEAD), LL_GetTick(HEAD->next));
-	UART_SendString(buffer);	
+// 	sprintf(buffer, "System Tick: %u, Head Tick: %u Next Tick: %u\r\n\r\n\r\n",g_Timer, LL_GetTick(HEAD), LL_GetTick(HEAD->next));
+// 	UART_SendString(buffer);	
 	UART_SendString("Press both buttons to resume...\r\n");
 	while(1)
 	{
