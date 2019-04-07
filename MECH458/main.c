@@ -49,15 +49,15 @@ const uint16_t BLACK_BOUNDARY_LOW = 800;
 const uint16_t WHITE_BOUNDARY_HIGH = 915;
 const uint16_t WHITE_BOUNDARY_LOW = 905;
 
-const uint16_t STEEL_BOUNDARY_HIGH = 800;
-const uint16_t STEEL_BOUNDARY_LOW = 300;
+const uint16_t STEEL_BOUNDARY_HIGH = 900;
+const uint16_t STEEL_BOUNDARY_LOW = 200;
 
-const uint16_t ALUMINUM_BOUNDARY_HIGH = 300;
+const uint16_t ALUMINUM_BOUNDARY_HIGH = 200;
 const uint16_t ALUMINUM_BOUNDARY_LOW = 10;
 
 const uint16_t STAGE2_EXIT_TIME = 800;
-const uint16_t EXIT_DELAY = 1200;
-const uint16_t MISSING_DELAY = 100;
+const uint16_t EXIT_DELAY = 1100;
+const uint16_t MISSING_DELAY = 50;
 
 const uint8_t STEPPER_OFFSET = 5;		// Calibration Offset
 const uint8_t STEPPER_REVERSE = 5;		// IDK
@@ -65,7 +65,7 @@ const uint8_t STEPPER_SAME = 7;		// Delay for double item
 const uint8_t STEPPER_RANGE = 25;		// Drop when stepper in range
 const uint8_t STEPPER_SET = 3;			// If stepper close delay
 
-volatile uint8_t BELT_SPEED = 120;
+volatile uint8_t BELT_SPEED = 110;
 
 // Make sure to use the correct lists
 extern list* HEAD;
@@ -73,7 +73,7 @@ extern list* STAGE1;
 extern list* STAGE2;
 extern list* TAIL;
 extern list* FRONT;
-extern list* STEPLIST;
+extern list* N_1;
 
 int main(void)
 {	
@@ -154,7 +154,7 @@ int main(void)
 	while (1)
 	{	
 		// Check for pause request	
-		if(g_PauseRequest) SYS_Test("Pause Requested!\r\n");
+		if(g_PauseRequest) SYS_Pause("Pause Requested!\r\n");
 		if(g_UnclassifiedRequest) SYS_Unclassified();
 		if(g_MissingRequest) SYS_Missing();
 
@@ -215,10 +215,10 @@ int main(void)
 				else
 				{
 					// Unknown non-magnetic object might be aluminum
-// 					if((reflVal >= ALUMINUM_BOUNDARY_LOW) && (reflVal <= ALUMINUM_BOUNDARY_HIGH))
-// 					{
-// 						LL_UpdateClass(temp, ALUMINUM);
-// 					}
+					if((reflVal >= ALUMINUM_BOUNDARY_LOW) && (reflVal <= ALUMINUM_BOUNDARY_HIGH))
+					{
+						LL_UpdateClass(temp, ALUMINUM);
+					}
 				}
 			}
 			temp = LL_Next(temp);

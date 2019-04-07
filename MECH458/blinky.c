@@ -19,7 +19,7 @@ extern list* STAGE1;
 extern list* STAGE2;
 extern list* TAIL;
 extern list* FRONT;
-extern list* BUFFER;
+extern list* N_1;
 
 static volatile uint8_t position[6] = {100, 0, 50, 150, 100, 100};
 extern stepperParam stepper;
@@ -264,13 +264,14 @@ void EXIT_Task(void* arg)
 	{
 		g_UnclassifiedRequest = 1;
 		LL_UpdateStatus(HEAD,EXPIRED);
-		lastItemTick = LL_GetTick(HEAD);
+		lastItemTick = g_Timer;
 		HEAD = LL_Next(HEAD);
 		STEPPER_SetRotation(position[LL_GetClass(HEAD)],position[LL_GetClass(HEAD->next)]);
 		_timer[3].state = BLOCKED;
 	} // Unclassified item handler
 	
-	if((LL_GetStatus(HEAD->next) == SORTABLE) && ((g_Timer - lastItemTick) >= (LL_GetTick(HEAD->next) - LL_GetTick(HEAD) + MISSING_DELAY)))
+	//if(lastItemTick == 0) lastItemTick = EXIT_DELAY;
+	if((LL_GetStatus(HEAD) == SORTABLE) && ((g_Timer - lastItemTick) >= (LL_GetTick(HEAD) - LL_GetTick(HEAD->prev) + MISSING_DELAY)))
 	{
 		g_MissingRequest = 1;
 		_timer[3].state = BLOCKED; 
@@ -281,13 +282,13 @@ void EXIT_Task(void* arg)
 	
 	if((query < STEPPER_RANGE) && (stepper.early == 0))
 	{
-		if((query < 3) && (stepper.same == 0) && ((LL_GetTick(HEAD->next) - LL_GetTick(HEAD)) > 300)) 
+		if((query < 5) && (stepper.same == 0) && ((LL_GetTick(HEAD) - LL_GetTick(HEAD->prev)) > 300)) 
 		{
 			stepper.same = STEPPER_SET;
 			stepper._accellStep = 0;
 		}
 		LL_UpdateStatus(HEAD,EXPIRED);
-		lastItemTick = g_Timer;
+		lastItemTick =  g_Timer;
 		HEAD = LL_Next(HEAD);
 		PWM(1);
 		STEPPER_SetRotation(position[LL_GetClass(HEAD)],position[LL_GetClass(HEAD->next)]);

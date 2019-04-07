@@ -47,7 +47,7 @@ void SYS_Init()
 	STAGE1 = NULL;
 	STAGE2 = NULL;
 	FRONT = NULL;
-	BUFFER = NULL;
+	N_1 = NULL;
 
 	// Initialize Item List
 	itemNode* initNode = NULL;
@@ -56,7 +56,6 @@ void SYS_Init()
 	// First Node
 	HEAD = LL_ItemListInit(initNode);
 	FRONT = HEAD;
-	BUFFER = HEAD;
 
 	// 48 total nodes for trial run
 	for(int i = 0; i < 47; i++)
@@ -72,6 +71,12 @@ void SYS_Init()
 	}
 	
 	// For prev checks
+	initNode = LL_ItemInit(65432,210,UNCLASSIFIED,UNINITIALIZED);
+	list* temp;
+	temp = LL_ItemListInit(initNode);
+	HEAD->prev = temp;
+	N_1 = temp;
+	LL_UpdateTick(temp, 0);
 
 	UART_SendString("System Initialized...");
 
@@ -288,7 +293,7 @@ void SYS_Unclassified()
 	PWM(0);
 	UART_SendString("\r\n\r\n\r\nUNCLASSIFIED ITEM DETECTED\r\n\r\n\r\n");
 	char buffer[50];
-	sprintf(buffer, "Item statistics:\r\nReflectance: %u, Magnetic: %u\r\n", LL_GetRefl(HEAD), LL_GetMag(HEAD));
+	sprintf(buffer, "Item statistics:\r\nReflectance: %u, Magnetic: %u\r\n", LL_GetRefl(HEAD->prev), LL_GetMag(HEAD->prev));
 	UART_SendString(buffer);
 	UART_SendString("\r\n\r\n\r\nPlease remove item and push both buttons to resume\r\n\r\n\r\n");
 	while(1)
@@ -310,11 +315,12 @@ void SYS_Missing()
 	PWM(0);
 	char buffer[50];
 	extern list* HEAD;
+	extern list* N_1;
 	UART_SendString("\r\n\r\n\r\nITEM MISSING\r\n\r\n\r\n");
 	UART_SendString("\r\n\r\n\r\nITEM MISSING\r\n\r\n\r\n");
 	UART_SendString("\r\n\r\n\r\nITEM MISSING\r\n\r\n\r\n");
-// 	sprintf(buffer, "System Tick: %u, Head Tick: %u Next Tick: %u\r\n\r\n\r\n",g_Timer, LL_GetTick(HEAD), LL_GetTick(HEAD->next));
-// 	UART_SendString(buffer);	
+	sprintf(buffer, "System Tick: %u, Head Tick: %u Prev Tick: %u\r\n\r\n\r\n",g_Timer, LL_GetTick(HEAD), LL_GetTick(N_1));
+	UART_SendString(buffer);	
 	UART_SendString("Press both buttons to resume...\r\n");
 	while(1)
 	{
