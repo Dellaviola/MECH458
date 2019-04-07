@@ -119,7 +119,7 @@ void SERVER_Task(void* arg)
 				// First Item enters stage 2
 				STAGE2 = HEAD; 
 				LL_UpdateTick(STAGE2, g_Timer);
-				lastItemTick = g_Timer + 1100;
+				lastItemTick = EXIT_DELAY;
 			}
 			else
 			{
@@ -281,7 +281,7 @@ void EXIT_Task(void* arg)
 	
 	if((query < STEPPER_RANGE) && (stepper.early == 0))
 	{
-		if((query < 5) && (stepper.same == 0)) 
+		if((query < 3) && (stepper.same == 0) && ((LL_GetTick(HEAD->next) - LL_GetTick(HEAD)) > 300)) 
 		{
 			stepper.same = STEPPER_SET;
 			stepper._accellStep = 0;
