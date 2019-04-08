@@ -27,6 +27,7 @@
 volatile uint8_t BELT_SPEED;
 
 const uint16_t STAGE2_EXIT_TIME;
+const uint16_t STAGE1_STAGE2_TIME;
 const uint16_t EXIT_DELAY;
 const uint16_t MISSING_DELAY;
 

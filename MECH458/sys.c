@@ -292,7 +292,12 @@ void SYS_Unclassified()
 {
 	cli();
 	PWM(0);
-	UART_SendString("\r\n\r\n\r\nUNCLASSIFIED ITEM DETECTED\r\n\r\n\r\n");
+	//UART_SendString("\r\n\r\n\r\nUNCLASSIFIED ITEM DETECTED\r\n\r\n\r\n");
+	UART_SendString("\r\n\r\n\r\n!!!UNKNOWN ITEM IN BAGGING AREA!!!\r\n");
+	UART_SendString("\r\n!!!UNKNOWN ITEM IN BAGGING AREA!!!\r\n");
+	UART_SendString("\r\n!!!UNKNOWN ITEM IN BAGGING AREA!!!\r\n");
+	UART_SendString("\r\n!!!UNKNOWN ITEM IN BAGGING AREA!!!\r\n");
+	UART_SendString("\r\n!!!UNKNOWN ITEM IN BAGGING AREA!!!\r\n");
 	char buffer[50];
 	sprintf(buffer, "Item statistics:\r\nReflectance: %u, Magnetic: %u\r\n", LL_GetRefl(HEAD->prev), LL_GetMag(HEAD->prev));
 	UART_SendString(buffer);

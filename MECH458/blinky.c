@@ -102,6 +102,7 @@ void SERVER_Task(void* arg)
 		if(!pin7state)
 		{
 			// Unblock MAG_Task and Watchdog Timer
+			LL_UpdateTick(STAGE1, g_Timer);
 			_timer[2].state = READY;
 			_timer[4].state = READY;
 			_timer[7].state = READY;	
@@ -118,14 +119,16 @@ void SERVER_Task(void* arg)
 			if(STAGE2 == NULL)
 			{
 				// First Item enters stage 2
-				STAGE2 = HEAD; 
+				STAGE2 = HEAD;
+				if((g_Timer - LL_GetTick(STAGE2)) > STAGE1_STAGE2_TIME) g_MissingRequest = 1; 
 				LL_UpdateTick(STAGE2, g_Timer);
-				lastItemTick = STAGE2_EXIT_TIME + 75;
+				lastItemTick = STAGE2_EXIT_TIME + 50;
 			}
 			else
 			{
 				// Increment stage 2
 				STAGE2 = LL_Next(STAGE2); 
+				if((g_Timer - LL_GetTick(STAGE2)) > STAGE1_STAGE2_TIME) g_MissingRequest = 1; 
 				LL_UpdateTick(STAGE2, g_Timer);
 			}
 			ADCSRA |= (1 << ADSC);
