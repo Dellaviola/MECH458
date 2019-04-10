@@ -33,6 +33,7 @@ typedef struct stepper_param
 	volatile uint8_t early;
 	volatile uint8_t earlytarget;
 	volatile uint8_t earlynext;
+	volatile uint8_t _itemCount;
 } stepperParam;
 
 stepperParam stepper;

@@ -17,9 +17,12 @@
 #define CW 0x04
 #define CCW 0x08
 
-volatile uint8_t accell[6] = {0x94, 0x7D, 0x66, 0x56, 0x43, 0x40};
+//volatile uint8_t accell[6] = {0x94, 0x7D, 0x66, 0x56, 0x43, 0x40};
+volatile uint8_t accell[23] = {0x6E, 0x66, 0x5F, 0x59, 0x54, 0x4F, 0x49, 0x45, 0x40, 0x3C, 0x3A, 0x37, 0x34, 0x32, 0x30, 0x2E, 0x2C, 0x2A, 0x28, 0x26, 0x25, 0x24, 0x23};
+volatile uint8_t decell[6]  = {0, 4, 8, 10, 12, 14};
 static volatile uint8_t position[6] = {100, 0, 50, 150, 100, 100};
-	
+volatile uint8_t MAX_ACCELL = 1;
+
 extern list* STEPLIST;
 extern list* HEAD;
 //TODO; Write spin down
@@ -113,9 +116,9 @@ ISR(TIMER2_COMPA_vect)
 {
 	
 	volatile uint8_t step[4] = {0x36, 0x2E, 0x2D, 0x35};
-		
+	
 	if(stepper.same) stepper.same--;
-		
+	
 	if (stepper._currentStep == stepper._targetStep)
 	{
 
@@ -129,6 +132,13 @@ ISR(TIMER2_COMPA_vect)
 		//if the direction is changing reset the delay
 		stepper._accellStep = (stepper._willContinue) ? stepper._accellStep : 0;
 		OCR2A = accell[stepper._accellStep];
+		stepper._itemCount++;
+		
+		//SET MAX ACCELL
+		if(((stepper._itemCount%8)>=0)&&(MAX_ACCELL<8) ){
+			MAX_ACCELL++;
+		}
+		
 	}
 	if ((stepper._currentStep < stepper._targetStep) && (stepper.same == 0))
 	{
@@ -138,11 +148,11 @@ ISR(TIMER2_COMPA_vect)
 
 		stepper._currentStep++;
 		//Simple acceleration / deceleration block uses curve defined in accel
-		if (((stepper._willContinue == 0) && (stepper._targetStep - stepper._currentStep) <= 5) && (accell[stepper._accellStep] < 0x94))
+		if (((stepper._willContinue == 0) && (stepper._targetStep - stepper._currentStep) <= 6) && (accell[stepper._accellStep] < 0x6E))
 		{
-			stepper._accellStep--;
+			stepper._accellStep = decell[stepper._targetStep - stepper._currentStep - 1];
 		}
-		else if ((stepper._currentStep > 5) && (accell[stepper._accellStep] > 0x40))
+		else if ((stepper._currentStep > 10) && (accell[stepper._accellStep] > accell[23-MAX_ACCELL]))
 		{
 			stepper._accellStep++;
 		}
@@ -151,7 +161,7 @@ ISR(TIMER2_COMPA_vect)
 	if (stepper._isInitiated != 1)
 	{
 		if ((PINE & 0x08) == 0)
-		{			
+		{
 			stepper._isInitiated = STEPPER_OFFSET;
 		}
 		if (stepper._isInitiated > 1) stepper._isInitiated--;
@@ -170,6 +180,7 @@ ISR(TIMER2_COMPA_vect)
 			stepper.early = 0;
 			stepper.earlynext = 0;
 			stepper.earlytarget = 0;
+			stepper._itemCount = 0;
 		}
 	}
 } // STEPPER_ISR

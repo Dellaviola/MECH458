@@ -201,7 +201,7 @@ void ADC_Task(void* arg)
 	// Min Reflectivity Condition
 	ATOMIC_BLOCK(ATOMIC_RESTORESTATE)
 	{
-		if((total > 10) && (total < 1000) && (total < LL_GetRefl(STAGE2)))
+		if((total > 10) && (total < 1100) && (total < LL_GetRefl(STAGE2)))
 		{
 			if (STAGE2) LL_UpdateRefl(STAGE2, total);
 		}
